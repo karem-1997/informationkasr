@@ -8,9 +8,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root { --primary: #1a5276; --secondary: #2980b9; --success: #27ae60; --danger: #c0392b; --accent: #f39c12; --bg: #d5d8dc; }
-        body { font-family: 'Tajawal', sans-serif; background-color: var(--bg); margin: 0; padding: 10px; padding-bottom: 90px; direction: rtl; }
+        body { font-family: 'Tajawal', sans-serif; background-color: var(--bg); margin: 0; padding: 10px; padding-bottom: 100px; direction: rtl; }
         .container { max-width: 500px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); min-height: 85vh; }
-        
         header { text-align: center; margin-bottom: 20px; border-bottom: 3px solid var(--secondary); padding-bottom: 10px; }
         h1 { color: var(--primary); font-size: 1.3rem; margin: 0; }
 
@@ -21,10 +20,9 @@
         
         .list-menu { display: flex; flex-direction: column; gap: 12px; }
         .item-link { position: relative; background: var(--secondary); color: white; padding: 18px; text-align: center; border-radius: 12px; cursor: pointer; font-weight: bold; font-size: 1.1rem; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        
-        .btn-del-item { position: absolute; top: -5px; left: -5px; background: white; color: red; border: 2px solid red; border-radius: 50%; width: 28px; height: 28px; cursor: pointer; display: none; font-weight: bold; z-index: 20; }
+        .btn-del-item { position: absolute; top: -8px; left: -8px; background: white; color: red; border: 2px solid red; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; display: none; font-weight: bold; z-index: 20; }
 
-        .data-card { background: #fff; border: 1px solid #ddd; border-radius: 12px; padding: 15px; margin-bottom: 15px; border-right: 6px solid var(--accent); position: relative; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .data-card { background: #fff; border: 1px solid #ddd; border-radius: 12px; padding: 15px; margin-bottom: 15px; border-right: 6px solid var(--accent); position: relative; }
         .data-row { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; }
         .data-label { font-size: 0.8rem; color: #7f8c8d; font-weight: bold; }
         .data-value { font-size: 1.05rem; color: var(--primary); font-weight: bold; }
@@ -34,10 +32,11 @@
         .c-btn { flex: 1; text-align: center; padding: 12px; border-radius: 8px; text-decoration: none; color: white; font-weight: bold; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; gap: 6px; }
         .wa-btn { background: #25d366; } .fb-btn { background: #1877f2; }
 
+        /* زر الإدارة السفلي لكل شاشة */
+        .admin-trigger-btn { background: transparent; color: #aaa; margin-top: 30px; font-size: 0.8rem; width: 100%; border: none; text-decoration: underline; cursor: pointer; display: block; text-align: center; padding: 10px; }
+
         .footer-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: #fff; padding: 12px; border-top: 2px solid #ddd; display: flex; justify-content: center; z-index: 999; }
         .btn-back-main { background: var(--primary); color: white; width: 90%; max-width: 460px; padding: 14px; border-radius: 10px; text-align: center; font-weight: bold; cursor: pointer; border: none; font-size: 1rem; }
-
-        .btn-admin-login { background: transparent; color: #aaa; margin-top: 40px; font-size: 0.75rem; width: 100%; border: none; text-decoration: underline; cursor: pointer; }
 
         .screen { display: none; } .active { display: block; }
     </style>
@@ -46,28 +45,28 @@
 
 <div class="container">
     <header><h1>استعلامات مستشفى القصر العيني الفرنساوي</h1></header>
-
     <a id="h-fb-link" href="#" target="_blank" class="fb-float"><i class="fab fa-facebook-f"></i></a>
 
     <div id="screen-main" class="screen active">
         <div id="panel-main" class="admin-panel">
             <input type="text" id="h-fb-input" placeholder="رابط فيسبوك المستشفى العام">
             <input type="text" id="new-cat-name" placeholder="إضافة تصنيف جديد">
-            <button onclick="saveMainSettings()" style="background:var(--success); color:white; width:100%; padding:10px; border-radius:8px;">حفظ</button>
+            <button onclick="saveMainSettings()" style="background:var(--success); color:white; width:100%; padding:10px; border:none; border-radius:8px; font-weight:bold;">حفظ وإضافة</button>
         </div>
         <div class="list-menu" id="cats-list"></div>
-        <button class="btn-admin-login" onclick="unlockAdmin()">⚙️ الإدارة</button>
+        <button class="admin-trigger-btn" onclick="unlockAdmin()">⚙️ إدارة التصنيفات</button>
     </div>
 
     <div id="screen-depts" class="screen">
         <h2 id="cat-title" style="text-align:center; color:var(--secondary);"></h2>
         <div id="panel-depts" class="admin-panel">
             <input type="text" id="dept-name" placeholder="اسم القسم">
-            <input type="text" id="dept-wa" placeholder="واتساب القسم">
-            <input type="text" id="dept-fb" placeholder="فيسبوك القسم">
-            <button onclick="addDept()" style="background:var(--success); color:white; width:100%; padding:10px; border-radius:8px;">إضافة</button>
+            <input type="text" id="dept-wa" placeholder="رقم واتساب القسم">
+            <input type="text" id="dept-fb" placeholder="رابط فيسبوك القسم">
+            <button onclick="addDept()" style="background:var(--success); color:white; width:100%; padding:10px; border:none; border-radius:8px; font-weight:bold;">إضافة القسم</button>
         </div>
         <div class="list-menu" id="depts-list"></div>
+        <button class="admin-trigger-btn" onclick="unlockAdmin()">⚙️ إدارة الأقسام</button>
     </div>
 
     <div id="screen-options" class="screen">
@@ -89,45 +88,45 @@
             <input type="text" id="c-name" placeholder="العيادة">
             <input type="text" id="c-doc" placeholder="الدكتور">
             <input type="text" id="c-time" placeholder="الموعد">
-            <input type="number" id="c-price" placeholder="السعر">
+            <input type="number" id="c-price" placeholder="سعر الكشف">
             <input type="text" id="c-wa" placeholder="واتساب خاص">
-            <button onclick="saveClinic()" style="background:var(--success); color:white; width:100%; padding:10px; border-radius:8px;">حفظ</button>
+            <button onclick="saveClinic()" style="background:var(--success); color:white; width:100%; padding:10px; border:none; border-radius:8px; font-weight:bold;">حفظ الموعد</button>
         </div>
         <div id="clinics-list"></div>
+        <button class="admin-trigger-btn" onclick="unlockAdmin()">⚙️ إدارة المواعيد</button>
     </div>
 
     <div id="screen-services" class="screen">
         <div id="panel-services" class="admin-panel">
-            <input type="text" id="s-name" placeholder="الخدمة">
+            <input type="text" id="s-name" placeholder="اسم الخدمة">
             <input type="number" id="s-price" placeholder="السعر">
-            <button onclick="addService()" style="background:var(--success); color:white; width:100%; padding:10px; border-radius:8px;">إضافة</button>
+            <button onclick="addService()" style="background:var(--success); color:white; width:100%; padding:10px; border:none; border-radius:8px; font-weight:bold;">إضافة الخدمة</button>
         </div>
         <div id="services-list"></div>
+        <button class="admin-trigger-btn" onclick="unlockAdmin()">⚙️ إدارة الأسعار</button>
     </div>
 
     <div class="footer-nav" id="master-footer" style="display:none;">
-        <button class="btn-back-main" id="back-btn">← رجوع</button>
+        <button class="btn-back-main" id="back-btn">← العودة للخلف</button>
     </div>
 </div>
 
 <script>
     const P_K = "Ali"; 
     const DAYS = ["السبت", "الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة"];
-    let state = JSON.parse(localStorage.getItem('FR_DB_V2')) || { fb: "#", cats: [] };
     
-    // سطر حماية لمنع الـ undefined
-    state.cats = state.cats.filter(c => c && c.name);
-
+    let state = JSON.parse(localStorage.getItem('KASR_FINAL_V4')) || { fb: "#", cats: [] };
     let cur = { cat: null, dept: null, day: null, editIdx: -1 };
     let isAdmin = false;
 
-    function saveAll() { localStorage.setItem('FR_DB_V2', JSON.stringify(state)); }
+    function saveAll() { localStorage.setItem('KASR_FINAL_V4', JSON.stringify(state)); }
 
     function showScreen(id) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.getElementById(id).classList.add('active');
         const footer = document.getElementById('master-footer');
         const back = document.getElementById('back-btn');
+        
         if (id === 'screen-main') footer.style.display = 'none';
         else {
             footer.style.display = 'flex';
@@ -141,12 +140,12 @@
     }
 
     function unlockAdmin() {
-        if (prompt("يرجى إدخال رمز التحقق للإدارة:") === P_K) {
+        if (isAdmin || prompt("يرجى إدخال كلمة السر:") === P_K) {
             isAdmin = true;
             document.querySelectorAll('.admin-panel').forEach(p => p.style.display = 'block');
             document.querySelectorAll('.btn-del-item').forEach(b => b.style.display = 'block');
             renderAll();
-        } else { alert("الرمز غير صحيح"); }
+        } else { alert("كلمة السر خاطئة!"); }
     }
 
     function saveMainSettings() {
@@ -157,7 +156,8 @@
     }
 
     function renderAll() {
-        const div = document.getElementById('cats-list'); div.innerHTML = "";
+        const div = document.getElementById('cats-list'); if(!div) return;
+        div.innerHTML = "";
         state.cats.forEach((c, i) => {
             if(c && c.name) {
                 div.innerHTML += `<div class="item-link"><span onclick="goToDepts(${i})">${c.name}</span><button class="btn-del-item" onclick="delCat(${i})" style="display:${isAdmin?'block':'none'}">X</button></div>`;
@@ -178,7 +178,8 @@
         let n = document.getElementById('dept-name').value.trim();
         if(n) {
             cur.cat.depts.push({ name: n, wa: document.getElementById('dept-wa').value, fb: document.getElementById('dept-fb').value, clinics: {}, services: [] });
-            saveAll(); renderDepts(); document.querySelectorAll('#panel-depts input').forEach(i=>i.value="");
+            saveAll(); renderDepts(); 
+            document.querySelectorAll('#panel-depts input').forEach(i=>i.value="");
         }
     }
 

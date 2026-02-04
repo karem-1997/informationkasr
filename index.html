@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>استعلامات مستشفى القصر العيني الفرنساوي</title>
+    <title>مستشفى القصر العيني الفرنساوي - النظام المتكامل</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
     
@@ -12,29 +12,34 @@
 
     <style>
         :root { --primary: #1a5276; --secondary: #2980b9; --success: #27ae60; --danger: #c0392b; --accent: #f39c12; --bg: #d5d8dc; }
-        body { font-family: 'Tajawal', sans-serif; background-color: var(--bg); margin: 0; padding: 10px; padding-bottom: 110px; direction: rtl; -webkit-tap-highlight-color: transparent; }
-        .container { max-width: 500px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); min-height: 85vh; }
+        body { font-family: 'Tajawal', sans-serif; background-color: var(--bg); margin: 0; padding: 10px; padding-bottom: 110px; direction: rtl; }
+        .container { max-width: 500px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); min-height: 85vh; position: relative; }
         header { text-align: center; margin-bottom: 20px; border-bottom: 3px solid var(--secondary); padding-bottom: 10px; }
         h1 { color: var(--primary); font-size: 1.2rem; margin: 0; }
         
+        /* زر فيسبوك الطاير */
         .fb-float { position: fixed; bottom: 85px; left: 20px; background: #1877f2; color: white; width: 55px; height: 55px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 1000; text-decoration: none; border: 2px solid #fff; }
-        
+
+        /* لوحات التحكم */
         .admin-panel { display: none; background: #e8f6f3; padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 2px dashed var(--success); }
         input { padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-family: 'Tajawal'; width: 100%; box-sizing: border-box; margin-bottom: 10px; font-size: 1rem; }
         
+        /* القوائم والأزرار */
         .list-menu { display: flex; flex-direction: column; gap: 12px; }
-        .item-link { position: relative; background: var(--secondary); color: white; border-radius: 12px; cursor: pointer; font-weight: bold; font-size: 1.1rem; box-shadow: 0 2px 5px rgba(0,0,0,0.1); overflow: hidden; transition: 0.1s; display: block; width: 100%; border: none; padding: 0; }
+        .item-link { position: relative; background: var(--secondary); color: white; border-radius: 12px; cursor: pointer; font-weight: bold; font-size: 1.1rem; box-shadow: 0 2px 5px rgba(0,0,0,0.1); overflow: hidden; display: block; width: 100%; border: none; padding: 0; }
         .item-link:active { background: var(--primary); transform: scale(0.98); }
-        .clickable-area { display: block; padding: 18px; width: 100%; height: 100%; color: white; text-align: center; }
+        .clickable-area { display: block; padding: 18px; width: 100%; height: 100%; color: white; text-align: center; text-decoration: none; }
         
         .btn-del-item { position: absolute; top: 5px; left: 5px; background: white; color: red; border: 2px solid red; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; display: none; font-weight: bold; z-index: 20; }
         
-        .data-card { background: #fff; border: 1px solid #ddd; border-radius: 12px; padding: 15px; margin-bottom: 15px; border-right: 6px solid var(--accent); position: relative; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        /* الكروت */
+        .data-card { background: #fff; border: 1px solid #ddd; border-radius: 12px; padding: 15px; margin-bottom: 15px; border-right: 6px solid var(--accent); position: relative; }
         .data-row { display: flex; flex-direction: column; gap: 4px; margin-bottom: 8px; }
         .data-label { font-size: 0.8rem; color: #7f8c8d; font-weight: bold; }
         .data-value { font-size: 1.05rem; color: var(--primary); font-weight: bold; }
         .badge-price { display: inline-block; background: #eafaf1; color: var(--success); padding: 6px 15px; border-radius: 20px; font-weight: bold; border: 1px solid var(--success); margin: 5px 0; }
         
+        /* أزرار الإدارة والعودة */
         .admin-trigger-btn { background: transparent; color: #aaa; margin-top: 30px; font-size: 0.8rem; width: 100%; border: none; text-decoration: underline; cursor: pointer; display: block; text-align: center; padding: 10px; }
         .footer-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: #fff; padding: 12px; border-top: 2px solid #ddd; display: flex; justify-content: center; z-index: 999; }
         .btn-back-main { background: var(--primary); color: white; width: 90%; max-width: 460px; padding: 14px; border-radius: 10px; text-align: center; font-weight: bold; cursor: pointer; border: none; font-size: 1rem; }
@@ -52,14 +57,14 @@
         <div id="panel-main" class="admin-panel">
             <input type="text" id="h-fb-input" placeholder="رابط فيسبوك المستشفى العام">
             <input type="text" id="new-cat-name" placeholder="إضافة تصنيف جديد">
-            <button onclick="saveMainSettings()" style="background:var(--success); color:white; width:100%; padding:12px; border:none; border-radius:8px;">حفظ وإضافة</button>
+            <button onclick="saveMainSettings()" style="background:var(--success); color:white; width:100%; padding:12px; border:none; border-radius:8px; cursor:pointer;">حفظ وإضافة</button>
         </div>
         <div class="list-menu" id="cats-list"></div>
         <button class="admin-trigger-btn" onclick="unlockAdmin()">⚙️ إدارة النظام</button>
     </div>
 
     <div id="screen-depts" class="screen">
-        <h2 id="cat-title" style="text-align:center;"></h2>
+        <h2 id="cat-title" style="text-align:center; color:var(--primary);"></h2>
         <div id="panel-depts" class="admin-panel">
             <input type="text" id="dept-name" placeholder="اسم القسم">
             <button onclick="addDept()" style="background:var(--success); color:white; width:100%; padding:12px; border:none; border-radius:8px;">إضافة القسم</button>
@@ -69,7 +74,7 @@
     </div>
 
     <div id="screen-options" class="screen">
-        <h2 id="opt-dept-title" style="text-align:center;"></h2>
+        <h2 id="opt-dept-title" style="text-align:center; color:var(--primary);"></h2>
         <div class="list-menu">
             <div class="item-link" onclick="showScreen('screen-days')"><span class="clickable-area">📅 جدول مواعيد الدكاترة</span></div>
             <div class="item-link" style="background:var(--accent)" onclick="showScreen('screen-services')"><span class="clickable-area">💰 الخدمات والأسعار</span></div>
@@ -77,15 +82,16 @@
     </div>
 
     <div id="screen-days" class="screen">
+        <h2 style="text-align:center;">اختر اليوم</h2>
         <div class="list-menu" id="days-list"></div>
     </div>
 
     <div id="screen-clinics" class="screen">
-        <h3 id="clinic-day-title" style="text-align:center;"></h3>
+        <h3 id="clinic-day-title" style="text-align:center; color:var(--primary);"></h3>
         <div id="panel-clinics" class="admin-panel">
-            <input type="text" id="c-name" placeholder="العيادة">
-            <input type="text" id="c-doc" placeholder="الدكتور">
-            <input type="text" id="c-time" placeholder="الموعد (مثلاً: 12 - 4)">
+            <input type="text" id="c-name" placeholder="اسم العيادة">
+            <input type="text" id="c-doc" placeholder="اسم الدكتور">
+            <input type="text" id="c-time" placeholder="الموعد (مثلاً: 10 ص - 2 ظ)">
             <input type="number" id="c-price" placeholder="سعر الكشف">
             <button onclick="saveClinic()" style="background:var(--success); color:white; width:100%; padding:12px; border:none; border-radius:8px;">حفظ الموعد</button>
         </div>
@@ -94,6 +100,7 @@
     </div>
 
     <div id="screen-services" class="screen">
+        <h2 style="text-align:center;">قائمة الخدمات والأسعار</h2>
         <div id="panel-services" class="admin-panel">
             <input type="text" id="s-name" placeholder="اسم الخدمة">
             <input type="number" id="s-price" placeholder="السعر">
@@ -109,6 +116,7 @@
 </div>
 
 <script>
+    // تهيئة Firebase
     const firebaseConfig = {
         apiKey: "AIzaSyDYW77Gt98QizE_x4o9qM_3PIRtZK1xRXw",
         authDomain: "informationkasr-d7f90.firebaseapp.com",
@@ -127,11 +135,16 @@
     let cur = { cat: null, dept: null, day: null };
     let isAdmin = false;
 
+    // تحميل البيانات
     async function load() {
         const doc = await db.collection("app").doc("data").get();
-        if(doc.exists) { state = doc.data(); renderAll(); }
+        if(doc.exists) { 
+            state = doc.data(); 
+            renderMain(); 
+        }
     }
 
+    // مزامنة البيانات
     async function sync() {
         await db.collection("app").doc("data").set(state);
         renderAll();
@@ -150,57 +163,87 @@
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.getElementById(id).classList.add('active');
         document.getElementById('master-footer').style.display = (id === 'screen-main') ? 'none' : 'flex';
-        const routes = { 'screen-depts':'screen-main', 'screen-options':'screen-depts', 'screen-days':'screen-options', 'screen-clinics':'screen-days', 'screen-services':'screen-options' };
+        
+        const routes = { 
+            'screen-depts':'screen-main', 
+            'screen-options':'screen-depts', 
+            'screen-days':'screen-options', 
+            'screen-clinics':'screen-days', 
+            'screen-services':'screen-options' 
+        };
         document.getElementById('back-btn').onclick = () => showScreen(routes[id]);
+        
         if(id === 'screen-days') renderDays();
         if(id === 'screen-clinics') renderClinics();
         if(id === 'screen-services') renderServices();
         window.scrollTo(0,0);
     }
 
+    // دالة التصنيفات الرئيسية
     function saveMainSettings() {
         state.fb = document.getElementById('h-fb-input').value || state.fb;
         let n = document.getElementById('new-cat-name').value.trim();
-        if(n) state.cats.push({ name: n, depts: [] });
+        if(n) { state.cats.push({ name: n, depts: [] }); document.getElementById('new-cat-name').value=''; }
         sync();
     }
 
-    function renderAll() {
+    function renderMain() {
         const div = document.getElementById('cats-list'); div.innerHTML = "";
         state.cats.forEach((c, i) => {
-            div.innerHTML += `<div class="item-link" onclick="cur.cat=i; document.getElementById('cat-title').innerText=state.cats[i].name; showScreen('screen-depts'); renderDepts();"><span class="clickable-area">${c.name}</span><button class="btn-del-item" onclick="event.stopPropagation(); state.cats.splice(${i},1); sync();">X</button></div>`;
+            div.innerHTML += `<div class="item-link" onclick="openCat(${i})"><span class="clickable-area">${c.name}</span><button class="btn-del-item" onclick="event.stopPropagation(); state.cats.splice(${i},1); sync();">X</button></div>`;
         });
         document.getElementById('h-fb-link').href = state.fb;
     }
 
+    function openCat(i) { cur.cat = i; document.getElementById('cat-title').innerText = state.cats[i].name; showScreen('screen-depts'); renderDepts(); }
+
+    // دالة الأقسام
     function addDept() {
         let n = document.getElementById('dept-name').value.trim();
-        if(n) { state.cats[cur.cat].depts.push({ name: n, clinics: {}, services: [] }); sync(); }
+        if(n) { 
+            if(!state.cats[cur.cat].depts) state.cats[cur.cat].depts = [];
+            state.cats[cur.cat].depts.push({ name: n, clinics: {}, services: [] }); 
+            document.getElementById('dept-name').value='';
+            sync(); 
+        }
     }
 
     function renderDepts() {
         const div = document.getElementById('depts-list'); div.innerHTML = "";
-        state.cats[cur.cat].depts.forEach((d, i) => {
-            div.innerHTML += `<div class="item-link" onclick="cur.dept=i; document.getElementById('opt-dept-title').innerText=state.cats[cur.cat].depts[i].name; showScreen('screen-options');"><span class="clickable-area">${d.name}</span><button class="btn-del-item" onclick="event.stopPropagation(); state.cats[cur.cat].depts.splice(${i},1); sync();">X</button></div>`;
+        const depts = state.cats[cur.cat].depts || [];
+        depts.forEach((d, i) => {
+            div.innerHTML += `<div class="item-link" onclick="openDept(${i})"><span class="clickable-area">${d.name}</span><button class="btn-del-item" onclick="event.stopPropagation(); state.cats[cur.cat].depts.splice(${i},1); sync();">X</button></div>`;
         });
     }
 
+    function openDept(i) { cur.dept = i; document.getElementById('opt-dept-title').innerText = state.cats[cur.cat].depts[i].name; showScreen('screen-options'); }
+
+    // دالة الأيام والمواعيد
     function renderDays() {
         const div = document.getElementById('days-list'); div.innerHTML = "";
-        DAYS.forEach(d => div.innerHTML += `<div class="item-link" style="background:#5d6d7e" onclick="cur.day='${d}'; showScreen('screen-clinics')"><span class="clickable-area">${d}</span></div>`);
+        DAYS.forEach(d => {
+            div.innerHTML += `<div class="item-link" style="background:#5d6d7e" onclick="cur.day='${d}'; showScreen('screen-clinics')"><span class="clickable-area">${d}</span></div>`;
+        });
     }
 
     function saveClinic() {
         const d = state.cats[cur.cat].depts[cur.dept];
+        if(!d.clinics) d.clinics = {};
         if(!d.clinics[cur.day]) d.clinics[cur.day] = [];
-        d.clinics[cur.day].push({ name: document.getElementById('c-name').value, doc: document.getElementById('c-doc').value, time: document.getElementById('c-time').value, price: document.getElementById('c-price').value });
+        d.clinics[cur.day].push({
+            name: document.getElementById('c-name').value,
+            doc: document.getElementById('c-doc').value,
+            time: document.getElementById('c-time').value,
+            price: document.getElementById('c-price').value
+        });
         sync();
     }
 
     function renderClinics() {
-        document.getElementById('clinic-day-title').innerText = cur.day;
+        document.getElementById('clinic-day-title').innerText = "مواعيد يوم " + cur.day;
         const div = document.getElementById('clinics-list'); div.innerHTML = "";
-        const list = state.cats[cur.cat].depts[cur.dept].clinics[cur.day] || [];
+        const d = state.cats[cur.cat].depts[cur.dept];
+        const list = (d.clinics && d.clinics[cur.day]) ? d.clinics[cur.day] : [];
         list.forEach((c, i) => {
             div.innerHTML += `<div class="data-card">
                 <div class="data-row"><span class="data-label">العيادة:</span><span class="data-value">${c.name}</span></div>
@@ -212,16 +255,32 @@
         });
     }
 
+    // دالة الخدمات
     function addService() {
-        state.cats[cur.cat].depts[cur.dept].services.push({ name: document.getElementById('s-name').value, price: document.getElementById('s-price').value });
+        const d = state.cats[cur.cat].depts[cur.dept];
+        if(!d.services) d.services = [];
+        d.services.push({ name: document.getElementById('s-name').value, price: document.getElementById('s-price').value });
         sync();
     }
 
     function renderServices() {
         const div = document.getElementById('services-list'); div.innerHTML = "";
-        state.cats[cur.cat].depts[cur.dept].services.forEach((s, i) => {
-            div.innerHTML += `<div class="data-card"><div class="data-row"><span class="data-label">الخدمة:</span><span class="data-value">${s.name}</span></div><div class="badge-price">${s.price} ج.م</div><button class="btn-del-item" onclick="state.cats[cur.cat].depts[cur.dept].services.splice(${i},1); sync();">X</button></div>`;
+        const d = state.cats[cur.cat].depts[cur.dept];
+        const list = d.services || [];
+        list.forEach((s, i) => {
+            div.innerHTML += `<div class="data-card">
+                <div class="data-row"><span class="data-label">الخدمة:</span><span class="data-value">${s.name}</span></div>
+                <div class="badge-price">${s.price} ج.م</div>
+                <button class="btn-del-item" onclick="state.cats[cur.cat].depts[cur.dept].services.splice(${i},1); sync();">X</button>
+            </div>`;
         });
+    }
+
+    function renderAll() {
+        renderMain();
+        if(cur.cat !== null) renderDepts();
+        if(cur.day !== null) renderClinics();
+        if(cur.cat !== null && cur.dept !== null) renderServices();
     }
 
     load();

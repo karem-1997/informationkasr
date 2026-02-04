@@ -58,13 +58,12 @@
             <button onclick="saveMainSettings()" style="background:var(--success); color:white; width:100%; padding:12px; border:none; border-radius:8px;">حفظ وإضافة</button>
         </div>
         <div class="list-menu" id="cats-list"></div>
-        <button class="admin-trigger-btn" onclick="unlockAdmin()">⚙️ إدارة التصنيفات</button>
+        <button class="admin-trigger-btn" onclick="unlockAdmin()">⚙️ إدارة النظام</button>
     </div>
 
     <div id="screen-depts" class="screen">
         <h2 id="cat-title" style="text-align:center;"></h2>
         <div id="panel-depts" class="admin-panel">
-            <b>لوحة التحكم - الأقسام</b>
             <input type="text" id="dept-name" placeholder="اسم القسم">
             <input type="text" id="dept-wa" placeholder="واتساب القسم">
             <button onclick="addDept()" style="background:var(--success); color:white; width:100%; padding:12px; border:none; border-radius:8px;">إضافة قسم</button>
@@ -90,7 +89,6 @@
     <div id="screen-clinics" class="screen">
         <h3 id="clinic-day-title" style="text-align:center;"></h3>
         <div id="panel-clinics" class="admin-panel">
-            <b>لوحة التحكم - الدكاترة</b>
             <input type="text" id="c-name" placeholder="العيادة">
             <input type="text" id="c-doc" placeholder="اسم الدكتور">
             <input type="text" id="c-time" placeholder="الموعد">
@@ -105,7 +103,6 @@
     <div id="screen-services" class="screen">
         <h2 style="text-align:center;">الأسعار والخدمات</h2>
         <div id="panel-services" class="admin-panel">
-            <b>لوحة التحكم - الخدمات</b>
             <input type="text" id="s-name" placeholder="اسم الخدمة">
             <input type="number" id="s-price" placeholder="السعر">
             <button onclick="addService()" style="background:var(--success); color:white; width:100%; padding:12px; border:none; border-radius:8px;">إضافة خدمة</button>
@@ -209,7 +206,7 @@
         cur.dept = i; 
         const d = state.cats[cur.cat].depts[i];
         document.getElementById('opt-dept-title').innerText = d.name;
-        document.getElementById('dept-wa-area').innerHTML = d.wa ? `<a href="https://wa.me/${d.wa}" class="btn-wa"><i class="fab fa-whatsapp"></i> واتساب القسم</a>` : "";
+        document.getElementById('dept-wa-area').innerHTML = d.wa ? `<a href="https://wa.me/${d.wa}" class="btn-wa"><i class="fab fa-whatsapp"></i> تواصل عبر الواتساب</a>` : "";
         showScreen('screen-options'); 
     }
 
@@ -238,7 +235,7 @@
                 <div class="data-row"><span class="data-label">الدكتور:</span><span class="data-value">د. ${c.doc}</span></div>
                 <div class="data-row"><span class="data-label">الموعد:</span><span class="data-value">${c.time}</span></div>
                 <div class="badge-price">${c.price} ج.م</div>
-                ${c.wa ? `<a href="https://wa.me/${c.wa}" class="btn-wa"><i class="fab fa-whatsapp"></i> حجز عبر الواتساب</a>` : ""}
+                ${c.wa ? `<a href="https://wa.me/${c.wa}" class="btn-wa"><i class="fab fa-whatsapp"></i> تواصل عبر الواتساب</a>` : ""}
                 <button class="btn-del-item" onclick="state.cats[cur.cat].depts[cur.dept].clinics[cur.day].splice(${i},1); sync();" style="display:${isAdmin?'block':'none'}">X</button>
             </div>`;
         });

@@ -14,33 +14,32 @@
         :root { --primary: #1a5276; --secondary: #2980b9; --success: #27ae60; --danger: #c0392b; --accent: #f39c12; --bg: #d5d8dc; }
         body { font-family: 'Tajawal', sans-serif; background-color: var(--bg); margin: 0; padding: 10px; padding-bottom: 110px; direction: rtl; -webkit-tap-highlight-color: transparent; }
         .container { max-width: 500px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); min-height: 85vh; }
-        
         header { text-align: center; margin-bottom: 20px; border-bottom: 3px solid var(--secondary); padding-bottom: 10px; }
         h1 { color: var(--primary); font-size: 1.2rem; margin: 0; }
-
+        
         .fb-float { position: fixed; bottom: 85px; left: 20px; background: #1877f2; color: white; width: 55px; height: 55px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 1000; text-decoration: none; border: 2px solid #fff; }
-
+        
         .admin-panel { display: none; background: #e8f6f3; padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 2px dashed var(--success); }
         input { padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-family: 'Tajawal'; width: 100%; box-sizing: border-box; margin-bottom: 10px; font-size: 1rem; }
         
         .list-menu { display: flex; flex-direction: column; gap: 12px; }
-        .item-link { position: relative; background: var(--secondary); border-radius: 12px; cursor: pointer; transition: 0.1s; overflow: hidden; border: none; padding: 0; width: 100%; display: block; }
+        .item-link { position: relative; background: var(--secondary); color: white; border-radius: 12px; cursor: pointer; font-weight: bold; font-size: 1.1rem; box-shadow: 0 2px 5px rgba(0,0,0,0.1); overflow: hidden; transition: 0.1s; display: block; width: 100%; border: none; padding: 0; }
         .item-link:active { background: var(--primary); transform: scale(0.98); }
-        .clickable-area { display: block; padding: 18px; color: white; text-align: center; font-weight: bold; font-size: 1.1rem; width: 100%; }
-
+        .clickable-area { display: block; padding: 18px; width: 100%; height: 100%; color: white; text-align: center; }
+        
         .btn-del-item { position: absolute; top: 5px; left: 5px; background: white; color: red; border: 2px solid red; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; display: none; font-weight: bold; z-index: 20; }
-
+        
         .data-card { background: #fff; border: 1px solid #ddd; border-radius: 12px; padding: 15px; margin-bottom: 15px; border-right: 6px solid var(--accent); position: relative; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
         .data-row { display: flex; flex-direction: column; gap: 4px; margin-bottom: 8px; }
         .data-label { font-size: 0.8rem; color: #7f8c8d; font-weight: bold; }
         .data-value { font-size: 1.05rem; color: var(--primary); font-weight: bold; }
         .badge-price { display: inline-block; background: #eafaf1; color: var(--success); padding: 6px 15px; border-radius: 20px; font-weight: bold; border: 1px solid var(--success); margin: 5px 0; }
-
+        
+        .admin-trigger-btn { background: transparent; color: #aaa; margin-top: 30px; font-size: 0.8rem; width: 100%; border: none; text-decoration: underline; cursor: pointer; display: block; text-align: center; padding: 10px; }
         .footer-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: #fff; padding: 12px; border-top: 2px solid #ddd; display: flex; justify-content: center; z-index: 999; }
         .btn-back-main { background: var(--primary); color: white; width: 90%; max-width: 460px; padding: 14px; border-radius: 10px; text-align: center; font-weight: bold; cursor: pointer; border: none; font-size: 1rem; }
-
+        
         .screen { display: none; } .active { display: block; }
-        .admin-trigger-btn { background: transparent; color: #aaa; margin-top: 30px; font-size: 0.8rem; width: 100%; border: none; text-decoration: underline; cursor: pointer; display: block; text-align: center; padding: 10px; }
     </style>
 </head>
 <body>
@@ -52,7 +51,7 @@
     <div id="screen-main" class="screen active">
         <div id="panel-main" class="admin-panel">
             <input type="text" id="h-fb-input" placeholder="رابط فيسبوك المستشفى العام">
-            <input type="text" id="new-cat-name" placeholder="إضافة تصنيف جديد (مثلاً: عيادات)">
+            <input type="text" id="new-cat-name" placeholder="إضافة تصنيف جديد">
             <button onclick="saveMainSettings()" style="background:var(--success); color:white; width:100%; padding:12px; border:none; border-radius:8px;">حفظ وإضافة</button>
         </div>
         <div class="list-menu" id="cats-list"></div>
@@ -63,10 +62,10 @@
         <h2 id="cat-title" style="text-align:center;"></h2>
         <div id="panel-depts" class="admin-panel">
             <input type="text" id="dept-name" placeholder="اسم القسم">
-            <input type="text" id="dept-wa" placeholder="واتساب القسم">
             <button onclick="addDept()" style="background:var(--success); color:white; width:100%; padding:12px; border:none; border-radius:8px;">إضافة القسم</button>
         </div>
         <div class="list-menu" id="depts-list"></div>
+        <button class="admin-trigger-btn" onclick="unlockAdmin()">⚙️ إدارة الأقسام</button>
     </div>
 
     <div id="screen-options" class="screen">
@@ -91,6 +90,7 @@
             <button onclick="saveClinic()" style="background:var(--success); color:white; width:100%; padding:12px; border:none; border-radius:8px;">حفظ الموعد</button>
         </div>
         <div id="clinics-list"></div>
+        <button class="admin-trigger-btn" onclick="unlockAdmin()">⚙️ إدارة المواعيد</button>
     </div>
 
     <div id="screen-services" class="screen">
@@ -100,6 +100,7 @@
             <button onclick="addService()" style="background:var(--success); color:white; width:100%; padding:12px; border:none; border-radius:8px;">إضافة خدمة</button>
         </div>
         <div id="services-list"></div>
+        <button class="admin-trigger-btn" onclick="unlockAdmin()">⚙️ إدارة الأسعار</button>
     </div>
 
     <div class="footer-nav" id="master-footer" style="display:none;">
@@ -108,7 +109,6 @@
 </div>
 
 <script>
-    // إعدادات Firebase الخاصة بك
     const firebaseConfig = {
         apiKey: "AIzaSyDYW77Gt98QizE_x4o9qM_3PIRtZK1xRXw",
         authDomain: "informationkasr-d7f90.firebaseapp.com",
@@ -124,26 +124,21 @@
     const DAYS = ["السبت", "الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة"];
     
     let state = { fb: "#", cats: [] };
-    let cur = { catIdx: null, deptIdx: null, day: null };
+    let cur = { cat: null, dept: null, day: null };
     let isAdmin = false;
 
-    // جلب البيانات من السحاب
-    async function loadData() {
+    async function load() {
         const doc = await db.collection("app").doc("data").get();
-        if (doc.exists) {
-            state = doc.data();
-            renderAll();
-        }
+        if(doc.exists) { state = doc.data(); renderAll(); }
     }
 
-    // حفظ البيانات للسحاب
     async function sync() {
         await db.collection("app").doc("data").set(state);
         renderAll();
     }
 
     function unlockAdmin() {
-        if (isAdmin || prompt("كلمة السر (Ali):") === "Ali") {
+        if(isAdmin || prompt("كلمة السر:") === "Ali") {
             isAdmin = true;
             document.querySelectorAll('.admin-panel').forEach(p => p.style.display = 'block');
             document.querySelectorAll('.btn-del-item').forEach(b => b.style.display = 'block');
@@ -157,7 +152,6 @@
         document.getElementById('master-footer').style.display = (id === 'screen-main') ? 'none' : 'flex';
         const routes = { 'screen-depts':'screen-main', 'screen-options':'screen-depts', 'screen-days':'screen-options', 'screen-clinics':'screen-days', 'screen-services':'screen-options' };
         document.getElementById('back-btn').onclick = () => showScreen(routes[id]);
-        
         if(id === 'screen-days') renderDays();
         if(id === 'screen-clinics') renderClinics();
         if(id === 'screen-services') renderServices();
@@ -174,39 +168,30 @@
     function renderAll() {
         const div = document.getElementById('cats-list'); div.innerHTML = "";
         state.cats.forEach((c, i) => {
-            div.innerHTML += `<div class="item-link" onclick="openCat(${i})"><span class="clickable-area">${c.name}</span><button class="btn-del-item" onclick="event.stopPropagation(); delCat(${i})" style="display:${isAdmin?'block':'none'}">X</button></div>`;
+            div.innerHTML += `<div class="item-link" onclick="cur.cat=i; document.getElementById('cat-title').innerText=state.cats[i].name; showScreen('screen-depts'); renderDepts();"><span class="clickable-area">${c.name}</span><button class="btn-del-item" onclick="event.stopPropagation(); state.cats.splice(${i},1); sync();">X</button></div>`;
         });
         document.getElementById('h-fb-link').href = state.fb;
     }
 
-    function openCat(i) { cur.catIdx = i; document.getElementById('cat-title').innerText = state.cats[i].name; renderDepts(); showScreen('screen-depts'); }
-    function delCat(i) { if(confirm("حذف؟")) { state.cats.splice(i,1); sync(); } }
-
     function addDept() {
         let n = document.getElementById('dept-name').value.trim();
-        if(n) {
-            state.cats[cur.catIdx].depts.push({ name: n, wa: document.getElementById('dept-wa').value, clinics: {}, services: [] });
-            sync();
-        }
+        if(n) { state.cats[cur.cat].depts.push({ name: n, clinics: {}, services: [] }); sync(); }
     }
 
     function renderDepts() {
         const div = document.getElementById('depts-list'); div.innerHTML = "";
-        state.cats[cur.catIdx].depts.forEach((d, i) => {
-            div.innerHTML += `<div class="item-link" onclick="openDept(${i})"><span class="clickable-area">${d.name}</span><button class="btn-del-item" onclick="event.stopPropagation(); delDept(${i})" style="display:${isAdmin?'block':'none'}">X</button></div>`;
+        state.cats[cur.cat].depts.forEach((d, i) => {
+            div.innerHTML += `<div class="item-link" onclick="cur.dept=i; document.getElementById('opt-dept-title').innerText=state.cats[cur.cat].depts[i].name; showScreen('screen-options');"><span class="clickable-area">${d.name}</span><button class="btn-del-item" onclick="event.stopPropagation(); state.cats[cur.cat].depts.splice(${i},1); sync();">X</button></div>`;
         });
     }
 
-    function openDept(i) { cur.deptIdx = i; document.getElementById('opt-dept-title').innerText = state.cats[cur.catIdx].depts[i].name; showScreen('screen-options'); }
-    function delDept(i) { if(confirm("حذف؟")) { state.cats[cur.catIdx].depts.splice(i,1); sync(); } }
-
     function renderDays() {
         const div = document.getElementById('days-list'); div.innerHTML = "";
-        DAYS.forEach(day => { div.innerHTML += `<div class="item-link" style="background:#5d6d7e" onclick="cur.day='${day}'; showScreen('screen-clinics')"><span class="clickable-area">${day}</span></div>`; });
+        DAYS.forEach(d => div.innerHTML += `<div class="item-link" style="background:#5d6d7e" onclick="cur.day='${d}'; showScreen('screen-clinics')"><span class="clickable-area">${d}</span></div>`);
     }
 
     function saveClinic() {
-        const d = state.cats[cur.catIdx].depts[cur.deptIdx];
+        const d = state.cats[cur.cat].depts[cur.dept];
         if(!d.clinics[cur.day]) d.clinics[cur.day] = [];
         d.clinics[cur.day].push({ name: document.getElementById('c-name').value, doc: document.getElementById('c-doc').value, time: document.getElementById('c-time').value, price: document.getElementById('c-price').value });
         sync();
@@ -215,33 +200,31 @@
     function renderClinics() {
         document.getElementById('clinic-day-title').innerText = cur.day;
         const div = document.getElementById('clinics-list'); div.innerHTML = "";
-        const list = state.cats[cur.catIdx].depts[cur.deptIdx].clinics[cur.day] || [];
+        const list = state.cats[cur.cat].depts[cur.dept].clinics[cur.day] || [];
         list.forEach((c, i) => {
             div.innerHTML += `<div class="data-card">
                 <div class="data-row"><span class="data-label">العيادة:</span><span class="data-value">${c.name}</span></div>
                 <div class="data-row"><span class="data-label">الدكتور:</span><span class="data-value">د. ${c.doc}</span></div>
                 <div class="data-row"><span class="data-label">الموعد:</span><span class="data-value">${c.time}</span></div>
                 <div class="badge-price">${c.price} ج.م</div>
-                <button class="btn-del-item" onclick="delC(${i})" style="display:${isAdmin?'block':'none'}">X</button>
+                <button class="btn-del-item" onclick="state.cats[cur.cat].depts[cur.dept].clinics[cur.day].splice(${i},1); sync();">X</button>
             </div>`;
         });
     }
-    function delC(i) { state.cats[cur.catIdx].depts[cur.deptIdx].clinics[cur.day].splice(i,1); sync(); }
 
     function addService() {
-        state.cats[cur.catIdx].depts[cur.deptIdx].services.push({ name: document.getElementById('s-name').value, price: document.getElementById('s-price').value });
+        state.cats[cur.cat].depts[cur.dept].services.push({ name: document.getElementById('s-name').value, price: document.getElementById('s-price').value });
         sync();
     }
 
     function renderServices() {
         const div = document.getElementById('services-list'); div.innerHTML = "";
-        state.cats[cur.catIdx].depts[cur.deptIdx].services.forEach((s, i) => {
-            div.innerHTML += `<div class="data-card"><div class="data-row"><span class="data-label">الخدمة:</span><span class="data-value">${s.name}</span></div><div class="badge-price">${s.price} ج.م</div><button class="btn-del-item" onclick="delS(${i})" style="display:${isAdmin?'block':'none'}">X</button></div>`;
+        state.cats[cur.cat].depts[cur.dept].services.forEach((s, i) => {
+            div.innerHTML += `<div class="data-card"><div class="data-row"><span class="data-label">الخدمة:</span><span class="data-value">${s.name}</span></div><div class="badge-price">${s.price} ج.م</div><button class="btn-del-item" onclick="state.cats[cur.cat].depts[cur.dept].services.splice(${i},1); sync();">X</button></div>`;
         });
     }
-    function delS(i) { state.cats[cur.catIdx].depts[cur.deptIdx].services.splice(i,1); sync(); }
 
-    loadData();
+    load();
 </script>
 </body>
 </html>

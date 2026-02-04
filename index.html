@@ -13,7 +13,7 @@
     <style>
         :root { --primary: #1a5276; --secondary: #2980b9; --success: #27ae60; --danger: #c0392b; --accent: #f39c12; --bg: #d5d8dc; }
         body { font-family: 'Tajawal', sans-serif; background-color: var(--bg); margin: 0; padding: 10px; padding-bottom: 110px; direction: rtl; }
-        .container { max-width: 500px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); min-height: 85vh; }
+        .container { max-width: 500px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); min-height: 85vh; position: relative; }
         header { text-align: center; margin-bottom: 20px; border-bottom: 3px solid var(--secondary); padding-bottom: 10px; }
         h1 { color: var(--primary); font-size: 1.2rem; margin: 0; }
         
@@ -23,23 +23,21 @@
         input { padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-family: 'Tajawal'; width: 100%; box-sizing: border-box; margin-bottom: 8px; font-size: 1rem; }
         
         .list-menu { display: flex; flex-direction: column; gap: 12px; }
-        .item-link { position: relative; background: var(--secondary); border-radius: 12px; cursor: pointer; transition: 0.1s; display: block; width: 100%; border: none; padding: 0; }
-        .item-link:active { background: var(--primary); transform: scale(0.98); }
+        .item-link { position: relative; background: var(--secondary); border-radius: 12px; cursor: pointer; display: block; width: 100%; border: none; padding: 0; }
         .clickable-area { display: block; padding: 18px; color: white; text-align: center; font-weight: bold; font-size: 1.1rem; text-decoration: none; }
         
-        .btn-del-item { position: absolute; top: 5px; left: 5px; background: white; color: red; border: 2px solid red; border-radius: 50%; width: 32px; height: 32px; cursor: pointer; display: none; font-weight: bold; z-index: 100; }
+        .btn-del-item { position: absolute; top: -10px; left: -10px; background: white; color: red; border: 2px solid red; border-radius: 50%; width: 28px; height: 28px; cursor: pointer; display: none; font-weight: bold; z-index: 100; }
 
-        .data-card { background: #fff; border: 1px solid #ddd; border-radius: 12px; padding: 15px; margin-bottom: 15px; border-right: 6px solid var(--accent); position: relative; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-        .data-row { display: flex; flex-direction: column; gap: 4px; margin-bottom: 8px; }
+        .data-card { background: #fff; border: 1px solid #ddd; border-radius: 12px; padding: 15px; margin-bottom: 15px; border-right: 6px solid var(--accent); position: relative; }
         .data-label { font-size: 0.8rem; color: #7f8c8d; font-weight: bold; }
-        .data-value { font-size: 1.05rem; color: var(--primary); font-weight: bold; }
+        .data-value { font-size: 1.05rem; color: var(--primary); font-weight: bold; margin-bottom: 5px; }
         
         .btn-wa { background: #25d366; color: white; padding: 10px; border-radius: 8px; text-align: center; text-decoration: none; font-weight: bold; font-size: 0.9rem; display: flex; align-items: center; justify-content: center; gap: 5px; margin-top: 10px; }
         .badge-price { background: #eafaf1; color: var(--success); padding: 5px 12px; border-radius: 15px; font-weight: bold; border: 1px solid var(--success); display: inline-block; }
 
-        .admin-trigger-btn { background: transparent; color: #aaa; margin-top: 30px; font-size: 0.8rem; width: 100%; border: none; text-decoration: underline; cursor: pointer; text-align: center; padding: 10px; display: block; }
+        .admin-trigger-btn { background: transparent; color: #aaa; margin-top: 30px; font-size: 0.8rem; width: 100%; border: none; text-decoration: underline; cursor: pointer; text-align: center; display: block; }
         .footer-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: #fff; padding: 12px; border-top: 2px solid #ddd; display: flex; justify-content: center; z-index: 999; }
-        .btn-back-main { background: var(--primary); color: white; width: 90%; max-width: 460px; padding: 14px; border-radius: 10px; text-align: center; font-weight: bold; cursor: pointer; border: none; font-size: 1rem; }
+        .btn-back-main { background: var(--primary); color: white; width: 90%; max-width: 460px; padding: 14px; border-radius: 10px; text-align: center; font-weight: bold; cursor: pointer; border: none; }
         
         .screen { display: none; } .active { display: block; }
     </style>
@@ -52,13 +50,13 @@
 
     <div id="screen-main" class="screen active">
         <div id="panel-main" class="admin-panel">
-            <b>لوحة التحكم - الرئيسية</b>
+            <b>إدارة التصنيفات والروابط:</b>
             <input type="text" id="h-fb-input" placeholder="رابط فيسبوك المستشفى">
             <input type="text" id="new-cat-name" placeholder="إضافة تصنيف جديد">
-            <button onclick="saveMainSettings()" style="background:var(--success); color:white; width:100%; padding:12px; border:none; border-radius:8px;">حفظ وإضافة</button>
+            <button onclick="saveMainSettings()" style="background:var(--success); color:white; width:100%; padding:12px; border:none; border-radius:8px;">حفظ</button>
         </div>
         <div class="list-menu" id="cats-list"></div>
-        <button class="admin-trigger-btn" onclick="unlockAdmin()">⚙️ إدارة النظام</button>
+        <button class="admin-trigger-btn" onclick="checkAuth()">⚙️ دخول الإدارة</button>
     </div>
 
     <div id="screen-depts" class="screen">
@@ -69,7 +67,7 @@
             <button onclick="addDept()" style="background:var(--success); color:white; width:100%; padding:12px; border:none; border-radius:8px;">إضافة قسم</button>
         </div>
         <div class="list-menu" id="depts-list"></div>
-        <button class="admin-trigger-btn" onclick="unlockAdmin()">⚙️ إدارة الأقسام</button>
+        <button class="admin-trigger-btn" onclick="checkAuth()">⚙️ إدارة الأقسام</button>
     </div>
 
     <div id="screen-options" class="screen">
@@ -89,26 +87,26 @@
     <div id="screen-clinics" class="screen">
         <h3 id="clinic-day-title" style="text-align:center;"></h3>
         <div id="panel-clinics" class="admin-panel">
-            <input type="text" id="c-name" placeholder="العيادة">
+            <input type="text" id="c-name" placeholder="اسم العيادة">
             <input type="text" id="c-doc" placeholder="اسم الدكتور">
             <input type="text" id="c-time" placeholder="الموعد">
-            <input type="number" id="c-price" placeholder="السعر">
-            <input type="text" id="c-wa" placeholder="واتساب الدكتور">
+            <input type="number" id="c-price" placeholder="سعر الكشف">
+            <input type="text" id="c-wa" placeholder="واتساب للتواصل">
             <button onclick="saveClinic()" style="background:var(--success); color:white; width:100%; padding:12px; border:none; border-radius:8px;">إضافة الموعد</button>
         </div>
         <div id="clinics-list"></div>
-        <button class="admin-trigger-btn" onclick="unlockAdmin()">⚙️ إدارة الدكاترة</button>
+        <button class="admin-trigger-btn" onclick="checkAuth()">⚙️ إدارة الدكاترة</button>
     </div>
 
     <div id="screen-services" class="screen">
-        <h2 style="text-align:center;">الأسعار والخدمات</h2>
+        <h2 style="text-align:center;">الخدمات والأسعار</h2>
         <div id="panel-services" class="admin-panel">
             <input type="text" id="s-name" placeholder="اسم الخدمة">
             <input type="number" id="s-price" placeholder="السعر">
             <button onclick="addService()" style="background:var(--success); color:white; width:100%; padding:12px; border:none; border-radius:8px;">إضافة خدمة</button>
         </div>
         <div id="services-list"></div>
-        <button class="admin-trigger-btn" onclick="unlockAdmin()">⚙️ إدارة الخدمات</button>
+        <button class="admin-trigger-btn" onclick="checkAuth()">⚙️ إدارة الخدمات</button>
     </div>
 
     <div class="footer-nav" id="master-footer" style="display:none;">
@@ -145,12 +143,15 @@
         renderAll();
     }
 
-    function unlockAdmin() {
-        if(isAdmin || prompt("كلمة السر (Ali):") === "Ali") {
+    // أمان أفضل: التحقق من الباسورد
+    function checkAuth() {
+        if (isAdmin) return;
+        let pass = prompt("أدخل كلمة مرور الإدارة:");
+        if (pass === "Ali") {
             isAdmin = true;
-            document.querySelectorAll('.admin-panel').forEach(p => p.style.display = 'block');
-            document.querySelectorAll('.btn-del-item').forEach(b => b.style.display = 'block');
             renderAll();
+        } else {
+            alert("خطأ في كلمة المرور");
         }
     }
 
@@ -160,12 +161,14 @@
         document.getElementById('master-footer').style.display = (id === 'screen-main') ? 'none' : 'flex';
         const routes = { 'screen-depts':'screen-main', 'screen-options':'screen-depts', 'screen-days':'screen-options', 'screen-clinics':'screen-days', 'screen-services':'screen-options' };
         document.getElementById('back-btn').onclick = () => showScreen(routes[id]);
+        
         if(id === 'screen-days') renderDays();
         if(id === 'screen-clinics') renderClinics();
         if(id === 'screen-services') renderServices();
         window.scrollTo(0,0);
     }
 
+    // الرئيسية
     function saveMainSettings() {
         state.fb = document.getElementById('h-fb-input').value || state.fb;
         let n = document.getElementById('new-cat-name').value.trim();
@@ -176,11 +179,13 @@
     function renderMain() {
         const div = document.getElementById('cats-list'); div.innerHTML = "";
         state.cats.forEach((c, i) => {
-            div.innerHTML += `<div class="item-link" onclick="openCat(${i})"><span class="clickable-area">${c.name}</span><button class="btn-del-item" onclick="event.stopPropagation(); state.cats.splice(${i},1); sync();" style="display:${isAdmin?'block':'none'}">X</button></div>`;
+            div.innerHTML += `<div class="item-link" onclick="openCat(${i})"><span class="clickable-area">${c.name}</span><button class="btn-del-item" style="display:${isAdmin?'block':'none'}" onclick="event.stopPropagation(); if(confirm('حذف؟')){state.cats.splice(${i},1); sync();}">X</button></div>`;
         });
         document.getElementById('h-fb-link').href = state.fb;
+        if(isAdmin) document.getElementById('panel-main').style.display = 'block';
     }
 
+    // الأقسام
     function openCat(i) { cur.cat = i; document.getElementById('cat-title').innerText = state.cats[i].name; showScreen('screen-depts'); renderDepts(); }
 
     function addDept() {
@@ -198,18 +203,20 @@
         const div = document.getElementById('depts-list'); div.innerHTML = "";
         const depts = state.cats[cur.cat].depts || [];
         depts.forEach((d, i) => {
-            div.innerHTML += `<div class="item-link" onclick="openDept(${i})"><span class="clickable-area">${d.name}</span><button class="btn-del-item" onclick="event.stopPropagation(); state.cats[cur.cat].depts.splice(${i},1); sync();" style="display:${isAdmin?'block':'none'}">X</button></div>`;
+            div.innerHTML += `<div class="item-link" onclick="openDept(${i})"><span class="clickable-area">${d.name}</span><button class="btn-del-item" style="display:${isAdmin?'block':'none'}" onclick="event.stopPropagation(); if(confirm('حذف؟')){state.cats[cur.cat].depts.splice(${i},1); sync();}">X</button></div>`;
         });
+        if(isAdmin) document.getElementById('panel-depts').style.display = 'block';
     }
 
     function openDept(i) { 
         cur.dept = i; 
         const d = state.cats[cur.cat].depts[i];
         document.getElementById('opt-dept-title').innerText = d.name;
-        document.getElementById('dept-wa-area').innerHTML = d.wa ? `<a href="https://wa.me/${d.wa}" class="btn-wa"><i class="fab fa-whatsapp"></i> تواصل عبر الواتساب</a>` : "";
+        document.getElementById('dept-wa-area').innerHTML = d.wa ? `<a href="https://wa.me/${d.wa}" target="_blank" class="btn-wa"><i class="fab fa-whatsapp"></i> تواصل عبر واتساب القسم</a>` : "";
         showScreen('screen-options'); 
     }
 
+    // المواعيد
     function renderDays() {
         const div = document.getElementById('days-list'); div.innerHTML = "";
         DAYS.forEach(d => div.innerHTML += `<div class="item-link" style="background:#5d6d7e" onclick="cur.day='${d}'; showScreen('screen-clinics')"><span class="clickable-area">${d}</span></div>`);
@@ -220,7 +227,6 @@
         if(!d.clinics) d.clinics = {};
         if(!d.clinics[cur.day]) d.clinics[cur.day] = [];
         d.clinics[cur.day].push({ name: document.getElementById('c-name').value, doc: document.getElementById('c-doc').value, time: document.getElementById('c-time').value, price: document.getElementById('c-price').value, wa: document.getElementById('c-wa').value });
-        document.getElementById('c-name').value=''; document.getElementById('c-doc').value=''; document.getElementById('c-time').value=''; document.getElementById('c-price').value=''; document.getElementById('c-wa').value='';
         sync();
     }
 
@@ -231,21 +237,22 @@
         const list = (d.clinics && d.clinics[cur.day]) ? d.clinics[cur.day] : [];
         list.forEach((c, i) => {
             div.innerHTML += `<div class="data-card">
+                <div class="data-value">د. ${c.doc}</div>
                 <div class="data-row"><span class="data-label">العيادة:</span><span class="data-value">${c.name}</span></div>
-                <div class="data-row"><span class="data-label">الدكتور:</span><span class="data-value">د. ${c.doc}</span></div>
                 <div class="data-row"><span class="data-label">الموعد:</span><span class="data-value">${c.time}</span></div>
                 <div class="badge-price">${c.price} ج.م</div>
-                ${c.wa ? `<a href="https://wa.me/${c.wa}" class="btn-wa"><i class="fab fa-whatsapp"></i> تواصل عبر الواتساب</a>` : ""}
-                <button class="btn-del-item" onclick="state.cats[cur.cat].depts[cur.dept].clinics[cur.day].splice(${i},1); sync();" style="display:${isAdmin?'block':'none'}">X</button>
+                ${c.wa ? `<a href="https://wa.me/${c.wa}" target="_blank" class="btn-wa"><i class="fab fa-whatsapp"></i> تواصل عبر الواتساب</a>` : ""}
+                <button class="btn-del-item" style="display:${isAdmin?'block':'none'}" onclick="state.cats[cur.cat].depts[cur.dept].clinics[cur.day].splice(${i},1); sync();">X</button>
             </div>`;
         });
+        if(isAdmin) document.getElementById('panel-clinics').style.display = 'block';
     }
 
+    // الخدمات
     function addService() {
         const d = state.cats[cur.cat].depts[cur.dept];
         if(!d.services) d.services = [];
         d.services.push({ name: document.getElementById('s-name').value, price: document.getElementById('s-price').value });
-        document.getElementById('s-name').value=''; document.getElementById('s-price').value='';
         sync();
     }
 
@@ -255,14 +262,20 @@
         const list = d.services || [];
         list.forEach((s, i) => {
             div.innerHTML += `<div class="data-card">
-                <div class="data-row"><span class="data-label">الخدمة:</span><span class="data-value">${s.name}</span></div>
+                <div class="data-value">${s.name}</div>
                 <div class="badge-price">${s.price} ج.م</div>
-                <button class="btn-del-item" onclick="state.cats[cur.cat].depts[cur.dept].services.splice(${i},1); sync();" style="display:${isAdmin?'block':'none'}">X</button>
+                <button class="btn-del-item" style="display:${isAdmin?'block':'none'}" onclick="state.cats[cur.cat].depts[cur.dept].services.splice(${i},1); sync();">X</button>
             </div>`;
         });
+        if(isAdmin) document.getElementById('panel-services').style.display = 'block';
     }
 
-    function renderAll() { renderMain(); if(cur.cat!==null) renderDepts(); if(cur.day) renderClinics(); if(cur.cat!==null&&cur.dept!==null) renderServices(); }
+    function renderAll() { 
+        renderMain(); 
+        if(cur.cat !== null) renderDepts(); 
+        if(cur.day) renderClinics(); 
+        if(cur.cat !== null && cur.dept !== null) renderServices(); 
+    }
     load();
 </script>
 </body>

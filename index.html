@@ -78,12 +78,11 @@
     <div id="screen-clinics" class="screen">
         <h3 id="clinic-day-title" style="text-align:center;"></h3>
         <div id="panel-clinics" class="admin-panel">
-            <input type="text" id="c-name" placeholder="اسم العيادة">
             <input type="text" id="c-doc" placeholder="اسم الدكتور">
             <input type="text" id="c-time" placeholder="الموعد">
             <input type="number" id="c-price" placeholder="سعر الكشف">
             <input type="text" id="c-wa" placeholder="واتساب للتواصل">
-            <button onclick="saveClinic()" style="background:var(--success); color:white; width:100%; padding:12px; border:none; border-radius:8px;">إضافة</button>
+            <button onclick="saveClinic()" style="background:var(--success); color:white; width:100%; padding:12px; border:none; border-radius:8px;">إضافة الموعد</button>
         </div>
         <div id="clinics-list"></div>
         <button class="admin-trigger-btn" onclick="checkAuth()">⚙️ إدارة المواعيد</button>
@@ -94,7 +93,7 @@
         <div id="panel-services" class="admin-panel">
             <input type="text" id="s-name" placeholder="اسم الخدمة">
             <input type="number" id="s-price" placeholder="السعر">
-            <button onclick="addService()" style="background:var(--success); color:white; width:100%; padding:12px; border:none; border-radius:8px;">إضافة</button>
+            <button onclick="addService()" style="background:var(--success); color:white; width:100%; padding:12px; border:none; border-radius:8px;">إضافة خدمة</button>
         </div>
         <div id="services-list"></div>
         <button class="admin-trigger-btn" onclick="checkAuth()">⚙️ إدارة الخدمات</button>
@@ -212,7 +211,8 @@
         const d = state.cats[cur.cat].depts[cur.dept];
         if(!d.clinics) d.clinics = {};
         if(!d.clinics[cur.day]) d.clinics[cur.day] = [];
-        d.clinics[cur.day].push({ name: document.getElementById('c-name').value, doc: document.getElementById('c-doc').value, time: document.getElementById('c-time').value, price: document.getElementById('c-price').value, wa: document.getElementById('c-wa').value });
+        d.clinics[cur.day].push({ doc: document.getElementById('c-doc').value, time: document.getElementById('c-time').value, price: document.getElementById('c-price').value, wa: document.getElementById('c-wa').value });
+        document.getElementById('c-doc').value=''; document.getElementById('c-time').value=''; document.getElementById('c-price').value=''; document.getElementById('c-wa').value='';
         sync();
     }
 
@@ -224,7 +224,6 @@
         list.forEach((c, i) => {
             div.innerHTML += `<div class="data-card">
                 <div class="data-row"><span class="data-label">الدكتور:</span><span class="data-value">د. ${c.doc}</span></div>
-                <div class="data-row"><span class="data-label">العيادة:</span><span class="data-value">${c.name}</span></div>
                 <div class="data-row"><span class="data-label">الموعد:</span><span class="data-value">${c.time}</span></div>
                 <div class="badge-price">${c.price} ج.م</div>
                 ${c.wa ? `<a href="https://wa.me/${c.wa}" target="_blank" class="btn-wa"><i class="fab fa-whatsapp"></i> تواصل عبر الواتساب</a>` : ""}
@@ -238,6 +237,7 @@
         const d = state.cats[cur.cat].depts[cur.dept];
         if(!d.services) d.services = [];
         d.services.push({ name: document.getElementById('s-name').value, price: document.getElementById('s-price').value });
+        document.getElementById('s-name').value=''; document.getElementById('s-price').value='';
         sync();
     }
 

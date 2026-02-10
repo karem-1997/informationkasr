@@ -71,8 +71,13 @@
     </div>
 
     <div id="screen-days" class="screen">
-        <h2 style="text-align:center;">اختر اليوم</h2>
+        <h2 style="text-align:center;">أيام المواعيد المتاحة</h2>
+        <div id="panel-days" class="admin-panel">
+            <input type="text" id="new-day-name" placeholder="إضافة يوم جديد (مثلاً: السبت)">
+            <button onclick="addDay()" style="background:var(--success); color:white; width:100%; padding:12px; border:none; border-radius:8px;">إضافة اليوم</button>
+        </div>
         <div class="list-menu" id="days-list"></div>
+        <button class="admin-trigger-btn" onclick="checkAuth()">⚙️ إدارة الأيام</button>
     </div>
 
     <div id="screen-clinics" class="screen">
@@ -117,7 +122,6 @@
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
-    const DAYS = ["السبت", "الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة"];
     
     let state = { fb: "#", cats: [] };
     let cur = { cat: null, dept: null, day: null };
@@ -150,6 +154,7 @@
         document.getElementById('master-footer').style.display = (id === 'screen-main') ? 'none' : 'flex';
         const routes = { 'screen-depts':'screen-main', 'screen-options':'screen-depts', 'screen-days':'screen-options', 'screen-clinics':'screen-days', 'screen-services':'screen-options' };
         document.getElementById('back-btn').onclick = () => showScreen(routes[id]);
+        
         if(id === 'screen-days') renderDays();
         if(id === 'screen-clinics') renderClinics();
         if(id === 'screen-services') renderServices();
@@ -179,7 +184,7 @@
         let w = document.getElementById('dept-wa').value.trim();
         if(n) { 
             if(!state.cats[cur.cat].depts) state.cats[cur.cat].depts = [];
-            state.cats[cur.cat].depts.push({ name: n, wa: w, clinics: {}, services: [] }); 
+            state.cats[cur.cat].depts.push({ name: n, wa: w, clinics: {}, services: [], days: [] }); 
             document.getElementById('dept-name').value=''; document.getElementById('dept-wa').value='';
             sync(); 
         }
@@ -202,9 +207,27 @@
         showScreen('screen-options'); 
     }
 
+    // إدارة الأيام الديناميكية
+    function addDay() {
+        const d = state.cats[cur.cat].depts[cur.dept];
+        let dayName = document.getElementById('new-day-name').value.trim();
+        if(!d.days) d.days = [];
+        if(dayName && !d.days.includes(dayName)) {
+            d.days.push(dayName);
+            document.getElementById('new-day-name').value = '';
+            sync();
+        }
+    }
+
     function renderDays() {
         const div = document.getElementById('days-list'); div.innerHTML = "";
-        DAYS.forEach(d => div.innerHTML += `<div class="item-link" style="background:#5d6d7e" onclick="cur.day='${d}'; showScreen('screen-clinics')"><span class="clickable-area">${d}</span></div>`);
+        const d = state.cats[cur.cat].depts[cur.dept];
+        const days = d.days || [];
+        if(days.length === 0 && !isAdmin) { div.innerHTML = "<p style='text-align:center;'>لا توجد أيام مسجلة حالياً</p>"; }
+        days.forEach((day, idx) => {
+            div.innerHTML += `<div class="item-link" style="background:#5d6d7e" onclick="cur.day='${day}'; showScreen('screen-clinics')"><span class="clickable-area">${day}</span><button class="btn-del-item" style="display:${isAdmin?'block':'none'}" onclick="event.stopPropagation(); if(confirm('حذف اليوم وكل مواعيده؟')){ d.days.splice(${idx},1); delete d.clinics['${day}']; sync();}">X</button></div>`;
+        });
+        if(isAdmin) document.getElementById('panel-days').style.display = 'block';
     }
 
     function saveClinic() {
@@ -255,7 +278,12 @@
         if(isAdmin) document.getElementById('panel-services').style.display = 'block';
     }
 
-    function renderAll() { renderMain(); if(cur.cat!==null) renderDepts(); if(cur.day) renderClinics(); if(cur.cat!==null&&cur.dept!==null) renderServices(); }
+    function renderAll() { 
+        renderMain(); 
+        if(cur.cat!==null) renderDepts(); 
+        if(cur.cat!==null && cur.dept!==null) { renderDays(); renderServices(); }
+        if(cur.day) renderClinics(); 
+    }
     load();
 </script>
 </body>

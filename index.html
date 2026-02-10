@@ -42,6 +42,7 @@
 
     <div id="screen-main" class="screen active">
         <div id="panel-main" class="admin-panel">
+            <b>الإعدادات العامة:</b>
             <input type="text" id="h-fb-input" placeholder="رابط فيسبوك المستشفى">
             <input type="text" id="new-cat-name" placeholder="إضافة تصنيف جديد">
             <button onclick="saveMainSettings()" style="background:var(--success); color:white; width:100%; padding:12px; border:none; border-radius:8px;">حفظ</button>
@@ -71,13 +72,13 @@
     </div>
 
     <div id="screen-days" class="screen">
-        <h2 style="text-align:center;">أيام المواعيد المتاحة</h2>
+        <h2 style="text-align:center;">الأيام المتاحة</h2>
         <div id="panel-days" class="admin-panel">
-            <input type="text" id="new-day-name" placeholder="إضافة يوم جديد (مثلاً: السبت)">
-            <button onclick="addDay()" style="background:var(--success); color:white; width:100%; padding:12px; border:none; border-radius:8px;">إضافة اليوم</button>
+            <input type="text" id="new-day-name" placeholder="اكتب اليوم (مثلاً: السبت)">
+            <button onclick="addDay()" style="background:var(--success); color:white; width:100%; padding:12px; border:none; border-radius:8px;">إضافة اليوم للجدول</button>
         </div>
         <div class="list-menu" id="days-list"></div>
-        <button class="admin-trigger-btn" onclick="checkAuth()">⚙️ إدارة الأيام</button>
+        <button class="admin-trigger-btn" onclick="checkAuth()">⚙️ تخصيص الأيام</button>
     </div>
 
     <div id="screen-clinics" class="screen">
@@ -139,12 +140,12 @@
 
     function checkAuth() {
         if (isAdmin) return;
-        let pass = prompt("أدخل كلمة المرور للدخول لوضع الإدارة:");
+        let pass = prompt("أدخل كلمة المرور:");
         if (pass === "Ali") {
             isAdmin = true;
             renderAll();
         } else {
-            alert("خطأ في كلمة المرور");
+            alert("خطأ!");
         }
     }
 
@@ -207,7 +208,7 @@
         showScreen('screen-options'); 
     }
 
-    // إدارة الأيام الديناميكية
+    // إدارة الأيام
     function addDay() {
         const d = state.cats[cur.cat].depts[cur.dept];
         let dayName = document.getElementById('new-day-name').value.trim();
@@ -222,10 +223,10 @@
     function renderDays() {
         const div = document.getElementById('days-list'); div.innerHTML = "";
         const d = state.cats[cur.cat].depts[cur.dept];
-        const days = d.days || [];
-        if(days.length === 0 && !isAdmin) { div.innerHTML = "<p style='text-align:center;'>لا توجد أيام مسجلة حالياً</p>"; }
-        days.forEach((day, idx) => {
-            div.innerHTML += `<div class="item-link" style="background:#5d6d7e" onclick="cur.day='${day}'; showScreen('screen-clinics')"><span class="clickable-area">${day}</span><button class="btn-del-item" style="display:${isAdmin?'block':'none'}" onclick="event.stopPropagation(); if(confirm('حذف اليوم وكل مواعيده؟')){ d.days.splice(${idx},1); delete d.clinics['${day}']; sync();}">X</button></div>`;
+        const daysArr = d.days || [];
+        if(daysArr.length === 0 && !isAdmin) { div.innerHTML = "<p style='text-align:center;'>لا توجد مواعيد متاحة حالياً</p>"; }
+        daysArr.forEach((day, idx) => {
+            div.innerHTML += `<div class="item-link" style="background:#5d6d7e" onclick="cur.day='${day}'; showScreen('screen-clinics')"><span class="clickable-area">${day}</span><button class="btn-del-item" style="display:${isAdmin?'block':'none'}" onclick="event.stopPropagation(); if(confirm('حذف اليوم؟')){ d.days.splice(${idx},1); sync();}">X</button></div>`;
         });
         if(isAdmin) document.getElementById('panel-days').style.display = 'block';
     }

@@ -20,14 +20,15 @@
         .admin-panel { display: none; background: #e8f6f3; padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 2px dashed var(--success); }
         input { padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-family: 'Tajawal'; width: 100%; box-sizing: border-box; margin-bottom: 8px; font-size: 1rem; }
         .list-menu { display: flex; flex-direction: column; gap: 12px; }
-        .item-link { position: relative; background: var(--secondary); border-radius: 12px; cursor: pointer; display: block; width: 100%; border: none; padding: 0; }
+        .item-link { position: relative; background: var(--secondary); border-radius: 12px; cursor: pointer; display: block; width: 100%; border: none; padding: 0; transition: 0.2s; }
+        .item-link:active { transform: scale(0.98); }
         .clickable-area { display: block; padding: 18px; color: white; text-align: center; font-weight: bold; font-size: 1.1rem; text-decoration: none; }
         .btn-del-item { position: absolute; top: -5px; left: -5px; background: white; color: red; border: 2px solid red; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; display: none; font-weight: bold; z-index: 100; }
         .data-card { background: #fff; border: 1px solid #ddd; border-radius: 12px; padding: 15px; margin-bottom: 15px; border-right: 6px solid var(--accent); position: relative; }
         .data-label { font-size: 0.8rem; color: #7f8c8d; font-weight: bold; }
         .data-value { font-size: 1.05rem; color: var(--primary); font-weight: bold; }
         .btn-wa { background: #25d366; color: white; padding: 10px; border-radius: 8px; text-align: center; text-decoration: none; font-weight: bold; font-size: 0.9rem; display: flex; align-items: center; justify-content: center; gap: 5px; margin-top: 10px; }
-        .badge-price { background: #eafaf1; color: var(--success); padding: 5px 12px; border-radius: 15px; font-weight: bold; border: 1px solid var(--success); display: inline-block; }
+        .badge-price { background: #eafaf1; color: var(--success); padding: 5px 12px; border-radius: 15px; font-weight: bold; border: 1px solid var(--success); display: inline-block; margin: 5px 0; }
         .admin-trigger-btn { background: transparent; color: #aaa; margin-top: 30px; font-size: 0.8rem; width: 100%; border: none; text-decoration: underline; cursor: pointer; text-align: center; display: block; }
         .footer-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: #fff; padding: 12px; border-top: 2px solid #ddd; display: flex; justify-content: center; z-index: 999; }
         .btn-back-main { background: var(--primary); color: white; width: 90%; max-width: 460px; padding: 14px; border-radius: 10px; text-align: center; font-weight: bold; cursor: pointer; border: none; }
@@ -68,12 +69,13 @@
             <div class="item-link" onclick="showScreen('screen-days')"><span class="clickable-area">📅 جدول مواعيد الدكاترة</span></div>
             <div class="item-link" style="background:var(--accent)" onclick="showScreen('screen-services')"><span class="clickable-area">💰 الخدمات والأسعار</span></div>
         </div>
+        <button class="admin-trigger-btn" onclick="checkAuth()">⚙️ إدارة الخيارات</button>
     </div>
 
     <div id="screen-days" class="screen">
         <h2 style="text-align:center;">الأيام المتاحة</h2>
         <div id="panel-days" class="admin-panel">
-            <input type="text" id="new-day-name" placeholder="أضف اليوم (مثلاً: السبت)">
+            <input type="text" id="new-day-name" placeholder="أضف اليوم (مثل: السبت)">
             <button onclick="addDay()" style="background:var(--success); color:white; width:100%; padding:12px; border:none; border-radius:8px;">إضافة اليوم</button>
         </div>
         <div class="list-menu" id="days-list"></div>
@@ -105,7 +107,7 @@
     </div>
 
     <div class="footer-nav" id="master-footer" style="display:none;">
-        <button class="btn-back-main" id="back-btn">← العودة</button>
+        <button class="btn-back-main" id="back-btn">← العودة للسابق</button>
     </div>
 </div>
 
@@ -138,13 +140,13 @@
     }
 
     function checkAuth() {
-        if (isAdmin) return;
+        if (isAdmin) { alert("وضع الإدارة نشط بالفعل"); return; }
         let pass = prompt("أدخل كلمة المرور:");
         if (pass === "Ali") {
             isAdmin = true;
             renderAll();
         } else {
-            alert("كلمة المرور خطأ!");
+            alert("خطأ!");
         }
     }
 
@@ -154,6 +156,7 @@
         document.getElementById('master-footer').style.display = (id === 'screen-main') ? 'none' : 'flex';
         const routes = { 'screen-depts':'screen-main', 'screen-options':'screen-depts', 'screen-days':'screen-options', 'screen-clinics':'screen-days', 'screen-services':'screen-options' };
         document.getElementById('back-btn').onclick = () => showScreen(routes[id]);
+        
         if(id === 'screen-days') renderDays();
         if(id === 'screen-clinics') renderClinics();
         if(id === 'screen-services') renderServices();
@@ -176,7 +179,7 @@
         document.getElementById('panel-main').style.display = isAdmin ? 'block' : 'none';
     }
 
-    function openCat(i) { cur.cat = i; document.getElementById('cat-title').innerText = state.cats[i].name; showScreen('screen-depts'); }
+    function openCat(i) { cur.cat = i; document.getElementById('cat-title').innerText = state.cats[i].name; showScreen('screen-depts'); renderDepts(); }
 
     function addDept() {
         let n = document.getElementById('dept-name').value.trim();

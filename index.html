@@ -42,7 +42,6 @@
 
     <div id="screen-main" class="screen active">
         <div id="panel-main" class="admin-panel">
-            <b>الإعدادات العامة:</b>
             <input type="text" id="h-fb-input" placeholder="رابط فيسبوك المستشفى">
             <input type="text" id="new-cat-name" placeholder="إضافة تصنيف جديد">
             <button onclick="saveMainSettings()" style="background:var(--success); color:white; width:100%; padding:12px; border:none; border-radius:8px;">حفظ</button>
@@ -74,11 +73,11 @@
     <div id="screen-days" class="screen">
         <h2 style="text-align:center;">الأيام المتاحة</h2>
         <div id="panel-days" class="admin-panel">
-            <input type="text" id="new-day-name" placeholder="اكتب اليوم (مثلاً: السبت)">
-            <button onclick="addDay()" style="background:var(--success); color:white; width:100%; padding:12px; border:none; border-radius:8px;">إضافة اليوم للجدول</button>
+            <input type="text" id="new-day-name" placeholder="أضف اليوم (مثلاً: السبت)">
+            <button onclick="addDay()" style="background:var(--success); color:white; width:100%; padding:12px; border:none; border-radius:8px;">إضافة اليوم</button>
         </div>
         <div class="list-menu" id="days-list"></div>
-        <button class="admin-trigger-btn" onclick="checkAuth()">⚙️ تخصيص الأيام</button>
+        <button class="admin-trigger-btn" onclick="checkAuth()">⚙️ إدارة الأيام</button>
     </div>
 
     <div id="screen-clinics" class="screen">
@@ -88,7 +87,7 @@
             <input type="text" id="c-time" placeholder="الموعد">
             <input type="number" id="c-price" placeholder="سعر الكشف">
             <input type="text" id="c-wa" placeholder="واتساب للتواصل">
-            <button onclick="saveClinic()" style="background:var(--success); color:white; width:100%; padding:12px; border:none; border-radius:8px;">إضافة الموعد</button>
+            <button onclick="saveClinic()" style="background:var(--success); color:white; width:100%; padding:12px; border:none; border-radius:8px;">حفظ الموعد</button>
         </div>
         <div id="clinics-list"></div>
         <button class="admin-trigger-btn" onclick="checkAuth()">⚙️ إدارة المواعيد</button>
@@ -145,7 +144,7 @@
             isAdmin = true;
             renderAll();
         } else {
-            alert("خطأ!");
+            alert("كلمة المرور خطأ!");
         }
     }
 
@@ -155,7 +154,6 @@
         document.getElementById('master-footer').style.display = (id === 'screen-main') ? 'none' : 'flex';
         const routes = { 'screen-depts':'screen-main', 'screen-options':'screen-depts', 'screen-days':'screen-options', 'screen-clinics':'screen-days', 'screen-services':'screen-options' };
         document.getElementById('back-btn').onclick = () => showScreen(routes[id]);
-        
         if(id === 'screen-days') renderDays();
         if(id === 'screen-clinics') renderClinics();
         if(id === 'screen-services') renderServices();
@@ -175,10 +173,10 @@
             div.innerHTML += `<div class="item-link" onclick="openCat(${i})"><span class="clickable-area">${c.name}</span><button class="btn-del-item" style="display:${isAdmin?'block':'none'}" onclick="event.stopPropagation(); if(confirm('حذف؟')){state.cats.splice(${i},1); sync();}">X</button></div>`;
         });
         document.getElementById('h-fb-link').href = state.fb;
-        if(isAdmin) document.getElementById('panel-main').style.display = 'block';
+        document.getElementById('panel-main').style.display = isAdmin ? 'block' : 'none';
     }
 
-    function openCat(i) { cur.cat = i; document.getElementById('cat-title').innerText = state.cats[i].name; showScreen('screen-depts'); renderDepts(); }
+    function openCat(i) { cur.cat = i; document.getElementById('cat-title').innerText = state.cats[i].name; showScreen('screen-depts'); }
 
     function addDept() {
         let n = document.getElementById('dept-name').value.trim();
@@ -197,7 +195,7 @@
         depts.forEach((d, i) => {
             div.innerHTML += `<div class="item-link" onclick="openDept(${i})"><span class="clickable-area">${d.name}</span><button class="btn-del-item" style="display:${isAdmin?'block':'none'}" onclick="event.stopPropagation(); if(confirm('حذف؟')){state.cats[cur.cat].depts.splice(${i},1); sync();}">X</button></div>`;
         });
-        if(isAdmin) document.getElementById('panel-depts').style.display = 'block';
+        document.getElementById('panel-depts').style.display = isAdmin ? 'block' : 'none';
     }
 
     function openDept(i) { 
@@ -208,7 +206,6 @@
         showScreen('screen-options'); 
     }
 
-    // إدارة الأيام
     function addDay() {
         const d = state.cats[cur.cat].depts[cur.dept];
         let dayName = document.getElementById('new-day-name').value.trim();
@@ -223,12 +220,11 @@
     function renderDays() {
         const div = document.getElementById('days-list'); div.innerHTML = "";
         const d = state.cats[cur.cat].depts[cur.dept];
-        const daysArr = d.days || [];
-        if(daysArr.length === 0 && !isAdmin) { div.innerHTML = "<p style='text-align:center;'>لا توجد مواعيد متاحة حالياً</p>"; }
-        daysArr.forEach((day, idx) => {
+        const days = d.days || [];
+        days.forEach((day, idx) => {
             div.innerHTML += `<div class="item-link" style="background:#5d6d7e" onclick="cur.day='${day}'; showScreen('screen-clinics')"><span class="clickable-area">${day}</span><button class="btn-del-item" style="display:${isAdmin?'block':'none'}" onclick="event.stopPropagation(); if(confirm('حذف اليوم؟')){ d.days.splice(${idx},1); sync();}">X</button></div>`;
         });
-        if(isAdmin) document.getElementById('panel-days').style.display = 'block';
+        document.getElementById('panel-days').style.display = isAdmin ? 'block' : 'none';
     }
 
     function saveClinic() {
@@ -254,7 +250,7 @@
                 <button class="btn-del-item" style="display:${isAdmin?'block':'none'}" onclick="state.cats[cur.cat].depts[cur.dept].clinics[cur.day].splice(${i},1); sync();">X</button>
             </div>`;
         });
-        if(isAdmin) document.getElementById('panel-clinics').style.display = 'block';
+        document.getElementById('panel-clinics').style.display = isAdmin ? 'block' : 'none';
     }
 
     function addService() {
@@ -276,7 +272,7 @@
                 <button class="btn-del-item" style="display:${isAdmin?'block':'none'}" onclick="state.cats[cur.cat].depts[cur.dept].services.splice(${i},1); sync();">X</button>
             </div>`;
         });
-        if(isAdmin) document.getElementById('panel-services').style.display = 'block';
+        document.getElementById('panel-services').style.display = isAdmin ? 'block' : 'none';
     }
 
     function renderAll() { 

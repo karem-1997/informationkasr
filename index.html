@@ -147,7 +147,7 @@
     function checkAuth() {
         if (isAdmin) { alert("وضع الإدارة نشط"); return; }
         let pass = prompt("أدخل كلمة المرور:");
-        if (pass === "Ali") {
+        if (pass === "1987") {
             isAdmin = true;
             renderAll();
         } else {
@@ -184,7 +184,7 @@
         const div = document.getElementById('cats-list'); div.innerHTML = "";
         state.cats.forEach((c, i) => {
             let action = c.url ? `window.open('${c.url}', '_blank')` : `openCat(${i})`;
-            let style = c.url ? `style="background:#2ecc71"` : ""; // لون مختلف للروابط الخارجية
+            let style = c.url ? `style="background:#2ecc71"` : ""; 
             let icon = c.url ? `<i class="fas fa-external-link-alt external-link-icon"></i>` : "";
             
             div.innerHTML += `<div class="item-link" ${style} onclick="${action}">

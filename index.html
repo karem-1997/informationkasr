@@ -33,6 +33,7 @@
         .footer-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: #fff; padding: 12px; border-top: 2px solid #ddd; display: flex; justify-content: center; z-index: 999; }
         .btn-back-main { background: var(--primary); color: white; width: 90%; max-width: 460px; padding: 14px; border-radius: 10px; text-align: center; font-weight: bold; cursor: pointer; border: none; }
         .screen { display: none; } .active { display: block; }
+        .external-link-icon { float: left; margin-top: 3px; font-size: 0.9rem; opacity: 0.8; }
     </style>
 </head>
 <body>
@@ -43,9 +44,13 @@
 
     <div id="screen-main" class="screen active">
         <div id="panel-main" class="admin-panel">
+            <b>الإعدادات:</b>
             <input type="text" id="h-fb-input" placeholder="رابط فيسبوك المستشفى">
-            <input type="text" id="new-cat-name" placeholder="إضافة تصنيف جديد">
-            <button onclick="saveMainSettings()" style="background:var(--success); color:white; width:100%; padding:12px; border:none; border-radius:8px;">حفظ</button>
+            <hr>
+            <b>إضافة (قسم داخلي أو رابط خارجي):</b>
+            <input type="text" id="new-cat-name" placeholder="اسم القسم أو الزر">
+            <input type="text" id="new-cat-url" placeholder="الرابط (اتركه فارغاً للقسم الداخلي)">
+            <button onclick="saveMainSettings()" style="background:var(--success); color:white; width:100%; padding:12px; border:none; border-radius:8px;">حفظ وإضافة</button>
         </div>
         <div class="list-menu" id="cats-list"></div>
         <button class="admin-trigger-btn" onclick="checkAuth()">⚙️ إدارة النظام</button>
@@ -54,7 +59,7 @@
     <div id="screen-depts" class="screen">
         <h2 id="cat-title" style="text-align:center;"></h2>
         <div id="panel-depts" class="admin-panel">
-            <input type="text" id="dept-name" placeholder="اسم القسم">
+            <input type="text" id="dept-name" placeholder="اسم القسم الفرعي">
             <input type="text" id="dept-wa" placeholder="واتساب القسم">
             <button onclick="addDept()" style="background:var(--success); color:white; width:100%; padding:12px; border:none; border-radius:8px;">إضافة قسم</button>
         </div>
@@ -166,14 +171,26 @@
     function saveMainSettings() {
         state.fb = document.getElementById('h-fb-input').value || state.fb;
         let n = document.getElementById('new-cat-name').value.trim();
-        if(n) { state.cats.push({ name: n, depts: [] }); document.getElementById('new-cat-name').value=''; }
+        let u = document.getElementById('new-cat-url').value.trim();
+        if(n) { 
+            state.cats.push({ name: n, url: u, depts: [] }); 
+            document.getElementById('new-cat-name').value=''; 
+            document.getElementById('new-cat-url').value='';
+        }
         sync();
     }
 
     function renderMain() {
         const div = document.getElementById('cats-list'); div.innerHTML = "";
         state.cats.forEach((c, i) => {
-            div.innerHTML += `<div class="item-link" onclick="openCat(${i})"><span class="clickable-area">${c.name}</span><button class="btn-del-item" style="display:${isAdmin?'block':'none'}" onclick="event.stopPropagation(); if(confirm('حذف التصنيف؟')){state.cats.splice(${i},1); sync();}">X</button></div>`;
+            let action = c.url ? `window.open('${c.url}', '_blank')` : `openCat(${i})`;
+            let style = c.url ? `style="background:#2ecc71"` : ""; // لون مختلف للروابط الخارجية
+            let icon = c.url ? `<i class="fas fa-external-link-alt external-link-icon"></i>` : "";
+            
+            div.innerHTML += `<div class="item-link" ${style} onclick="${action}">
+                <span class="clickable-area">${icon} ${c.name}</span>
+                <button class="btn-del-item" style="display:${isAdmin?'block':'none'}" onclick="event.stopPropagation(); if(confirm('حذف؟')){state.cats.splice(${i},1); sync();}">X</button>
+            </div>`;
         });
         document.getElementById('h-fb-link').href = state.fb;
         document.getElementById('panel-main').style.display = isAdmin ? 'block' : 'none';
@@ -196,7 +213,7 @@
         const div = document.getElementById('depts-list'); div.innerHTML = "";
         const depts = state.cats[cur.cat].depts || [];
         depts.forEach((d, i) => {
-            div.innerHTML += `<div class="item-link" onclick="openDept(${i})"><span class="clickable-area">${d.name}</span><button class="btn-del-item" style="display:${isAdmin?'block':'none'}" onclick="event.stopPropagation(); if(confirm('حذف القسم؟')){state.cats[cur.cat].depts.splice(${i},1); sync();}">X</button></div>`;
+            div.innerHTML += `<div class="item-link" onclick="openDept(${i})"><span class="clickable-area">${d.name}</span><button class="btn-del-item" style="display:${isAdmin?'block':'none'}" onclick="event.stopPropagation(); if(confirm('حذف؟')){state.cats[cur.cat].depts.splice(${i},1); sync();}">X</button></div>`;
         });
         document.getElementById('panel-depts').style.display = isAdmin ? 'block' : 'none';
     }
@@ -220,12 +237,11 @@
         }
     }
 
-    // وظيفة حذف اليوم تم إصلاحها هنا
     function deleteDay(idx, dayName) {
-        if(confirm(`هل تريد حذف يوم (${dayName}) وجميع مواعيده؟`)) {
+        if(confirm(`حذف (${dayName}) بمواعيده؟`)) {
             const d = state.cats[cur.cat].depts[cur.dept];
-            d.days.splice(idx, 1); // حذف من مصفوفة الأيام
-            if(d.clinics && d.clinics[dayName]) delete d.clinics[dayName]; // حذف مواعيد اليوم
+            d.days.splice(idx, 1);
+            if(d.clinics && d.clinics[dayName]) delete d.clinics[dayName];
             sync();
         }
     }

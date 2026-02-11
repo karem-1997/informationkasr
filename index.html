@@ -23,7 +23,7 @@
         .item-link { position: relative; background: var(--secondary); border-radius: 12px; cursor: pointer; display: block; width: 100%; border: none; padding: 0; transition: 0.2s; }
         .item-link:active { transform: scale(0.98); }
         .clickable-area { display: block; padding: 18px; color: white; text-align: center; font-weight: bold; font-size: 1.1rem; text-decoration: none; }
-        .btn-del-item { position: absolute; top: -5px; left: -5px; background: white; color: red; border: 2px solid red; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; display: none; font-weight: bold; z-index: 100; }
+        .btn-del-item { position: absolute; top: -5px; left: -5px; background: white; color: red; border: 2px solid red; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; display: none; font-weight: bold; z-index: 100; line-height: 25px; text-align: center; }
         .data-card { background: #fff; border: 1px solid #ddd; border-radius: 12px; padding: 15px; margin-bottom: 15px; border-right: 6px solid var(--accent); position: relative; }
         .data-label { font-size: 0.8rem; color: #7f8c8d; font-weight: bold; }
         .data-value { font-size: 1.05rem; color: var(--primary); font-weight: bold; }
@@ -140,7 +140,7 @@
     }
 
     function checkAuth() {
-        if (isAdmin) { alert("وضع الإدارة نشط بالفعل"); return; }
+        if (isAdmin) { alert("وضع الإدارة نشط"); return; }
         let pass = prompt("أدخل كلمة المرور:");
         if (pass === "Ali") {
             isAdmin = true;
@@ -173,7 +173,7 @@
     function renderMain() {
         const div = document.getElementById('cats-list'); div.innerHTML = "";
         state.cats.forEach((c, i) => {
-            div.innerHTML += `<div class="item-link" onclick="openCat(${i})"><span class="clickable-area">${c.name}</span><button class="btn-del-item" style="display:${isAdmin?'block':'none'}" onclick="event.stopPropagation(); if(confirm('حذف؟')){state.cats.splice(${i},1); sync();}">X</button></div>`;
+            div.innerHTML += `<div class="item-link" onclick="openCat(${i})"><span class="clickable-area">${c.name}</span><button class="btn-del-item" style="display:${isAdmin?'block':'none'}" onclick="event.stopPropagation(); if(confirm('حذف التصنيف؟')){state.cats.splice(${i},1); sync();}">X</button></div>`;
         });
         document.getElementById('h-fb-link').href = state.fb;
         document.getElementById('panel-main').style.display = isAdmin ? 'block' : 'none';
@@ -196,7 +196,7 @@
         const div = document.getElementById('depts-list'); div.innerHTML = "";
         const depts = state.cats[cur.cat].depts || [];
         depts.forEach((d, i) => {
-            div.innerHTML += `<div class="item-link" onclick="openDept(${i})"><span class="clickable-area">${d.name}</span><button class="btn-del-item" style="display:${isAdmin?'block':'none'}" onclick="event.stopPropagation(); if(confirm('حذف؟')){state.cats[cur.cat].depts.splice(${i},1); sync();}">X</button></div>`;
+            div.innerHTML += `<div class="item-link" onclick="openDept(${i})"><span class="clickable-area">${d.name}</span><button class="btn-del-item" style="display:${isAdmin?'block':'none'}" onclick="event.stopPropagation(); if(confirm('حذف القسم؟')){state.cats[cur.cat].depts.splice(${i},1); sync();}">X</button></div>`;
         });
         document.getElementById('panel-depts').style.display = isAdmin ? 'block' : 'none';
     }
@@ -220,12 +220,25 @@
         }
     }
 
+    // وظيفة حذف اليوم تم إصلاحها هنا
+    function deleteDay(idx, dayName) {
+        if(confirm(`هل تريد حذف يوم (${dayName}) وجميع مواعيده؟`)) {
+            const d = state.cats[cur.cat].depts[cur.dept];
+            d.days.splice(idx, 1); // حذف من مصفوفة الأيام
+            if(d.clinics && d.clinics[dayName]) delete d.clinics[dayName]; // حذف مواعيد اليوم
+            sync();
+        }
+    }
+
     function renderDays() {
         const div = document.getElementById('days-list'); div.innerHTML = "";
         const d = state.cats[cur.cat].depts[cur.dept];
         const days = d.days || [];
         days.forEach((day, idx) => {
-            div.innerHTML += `<div class="item-link" style="background:#5d6d7e" onclick="cur.day='${day}'; showScreen('screen-clinics')"><span class="clickable-area">${day}</span><button class="btn-del-item" style="display:${isAdmin?'block':'none'}" onclick="event.stopPropagation(); if(confirm('حذف اليوم؟')){ d.days.splice(${idx},1); sync();}">X</button></div>`;
+            div.innerHTML += `<div class="item-link" style="background:#5d6d7e" onclick="cur.day='${day}'; showScreen('screen-clinics')">
+                <span class="clickable-area">${day}</span>
+                <button class="btn-del-item" style="display:${isAdmin?'block':'none'}" onclick="event.stopPropagation(); deleteDay(${idx}, '${day}')">X</button>
+            </div>`;
         });
         document.getElementById('panel-days').style.display = isAdmin ? 'block' : 'none';
     }

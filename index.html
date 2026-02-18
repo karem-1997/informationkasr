@@ -18,7 +18,7 @@
         h1 { color: var(--primary); font-size: 1.2rem; margin: 0; }
         .fb-float { position: fixed; bottom: 85px; left: 20px; background: #1877f2; color: white; width: 55px; height: 55px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 1000; text-decoration: none; border: 2px solid #fff; }
         .admin-panel { display: none; background: #e8f6f3; padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 2px dashed var(--success); }
-        input { padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-family: 'Tajawal'; width: 100%; box-sizing: border-box; margin-bottom: 8px; font-size: 1rem; }
+        input, select { padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-family: 'Tajawal'; width: 100%; box-sizing: border-box; margin-bottom: 8px; font-size: 1rem; }
         .list-menu { display: flex; flex-direction: column; gap: 12px; }
         .item-link { position: relative; background: var(--secondary); border-radius: 12px; cursor: pointer; display: block; width: 100%; border: none; padding: 0; transition: 0.2s; }
         .item-link:active { transform: scale(0.98); }
@@ -34,11 +34,12 @@
         .btn-back-main { background: var(--primary); color: white; width: 90%; max-width: 460px; padding: 14px; border-radius: 10px; text-align: center; font-weight: bold; cursor: pointer; border: none; }
         .screen { display: none; } .active { display: block; }
         .external-link-icon { float: left; margin-top: 3px; font-size: 0.9rem; opacity: 0.8; }
-        /* ستايل البحث */
         .search-box { margin-bottom: 20px; position: relative; }
         .search-box input { padding-right: 40px; border: 2px solid var(--secondary); }
         .search-box i { position: absolute; right: 15px; top: 15px; color: var(--secondary); }
         .search-res-title { font-size: 0.9rem; color: var(--danger); font-weight: bold; margin-bottom: 10px; display: block; }
+        /* ستايل المربعات الجديدة للوقت */
+        .time-picker-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-bottom: 8px; }
     </style>
 </head>
 <body>
@@ -48,16 +49,8 @@
     <a id="h-fb-link" href="#" target="_blank" class="fb-float"><i class="fab fa-facebook-f"></i></a>
 
     <div id="screen-main" class="screen active">
-        <div class="search-box">
-            <i class="fas fa-search"></i>
-            <input type="text" id="main-search" placeholder="ابحث عن دكتور، قسم، أو خدمة..." oninput="doSearch(this.value)">
-        </div>
-
-        <div id="search-results-area" style="display:none; margin-bottom:20px; border-bottom:2px solid #eee; padding-bottom:10px;">
-            <span class="search-res-title">نتائج البحث:</span>
-            <div id="search-list"></div>
-        </div>
-
+        <div class="search-box"><i class="fas fa-search"></i><input type="text" id="main-search" placeholder="ابحث عن دكتور، قسم، أو خدمة..." oninput="doSearch(this.value)"></div>
+        <div id="search-results-area" style="display:none; margin-bottom:20px; border-bottom:2px solid #eee; padding-bottom:10px;"><span class="search-res-title">نتائج البحث:</span><div id="search-list"></div></div>
         <div id="main-content-area">
             <div id="panel-main" class="admin-panel">
                 <b>الإعدادات:</b>
@@ -108,7 +101,13 @@
         <h3 id="clinic-day-title" style="text-align:center;"></h3>
         <div id="panel-clinics" class="admin-panel">
             <input type="text" id="c-doc" placeholder="اسم الدكتور">
-            <input type="text" id="c-time" placeholder="الموعد">
+            <div class="data-label">حدد الموعد:</div>
+            <div class="time-picker-grid">
+                <input type="number" id="t-from" placeholder="من (ساعة)">
+                <select id="p-from"><option value="صباحاً">صباحاً</option><option value="مساءً">مساءً</option></select>
+                <input type="number" id="t-to" placeholder="إلى (ساعة)">
+                <select id="p-to"><option value="صباحاً">صباحاً</option><option value="مساءً">مساءً</option></select>
+            </div>
             <input type="number" id="c-price" placeholder="سعر الكشف">
             <input type="text" id="c-wa" placeholder="واتساب للتواصل">
             <button onclick="saveClinic()" style="background:var(--success); color:white; width:100%; padding:12px; border:none; border-radius:8px;">حفظ الموعد</button>
@@ -128,9 +127,7 @@
         <button class="admin-trigger-btn" onclick="checkAuth()">⚙️ إدارة الخدمات</button>
     </div>
 
-    <div class="footer-nav" id="master-footer" style="display:none;">
-        <button class="btn-back-main" id="back-btn">← العودة للسابق</button>
-    </div>
+    <div class="footer-nav" id="master-footer" style="display:none;"><button class="btn-back-main" id="back-btn">← العودة للسابق</button></div>
 </div>
 
 <script>
@@ -146,7 +143,6 @@
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
-    
     let state = { fb: "#", cats: [] };
     let cur = { cat: null, dept: null, day: null };
     let isAdmin = false;
@@ -156,76 +152,46 @@
         if(doc.exists) { state = doc.data(); renderAll(); }
     }
 
-    async function sync() {
-        await db.collection("app").doc("data").set(state);
-        renderAll();
-    }
+    async function sync() { await db.collection("app").doc("data").set(state); renderAll(); }
 
     function checkAuth() {
         if (isAdmin) { alert("وضع الإدارة نشط"); return; }
         let pass = prompt("أدخل كلمة المرور:");
-        if (pass === "1987") {
-            isAdmin = true;
-            renderAll();
-        } else {
-            alert("خطأ!");
-        }
+        if (pass === "1987") { isAdmin = true; renderAll(); } else { alert("خطأ!"); }
     }
 
-    // وظيفة البحث الشامل
     function doSearch(val) {
         const query = val.trim().toLowerCase();
         const resDiv = document.getElementById('search-results-area');
         const listDiv = document.getElementById('search-list');
         const contentArea = document.getElementById('main-content-area');
-
-        if (query.length < 2) {
-            resDiv.style.display = "none";
-            contentArea.style.opacity = "1";
-            return;
-        }
-
-        resDiv.style.display = "block";
-        contentArea.style.opacity = "0.3";
-        listDiv.innerHTML = "";
+        if (query.length < 2) { resDiv.style.display = "none"; contentArea.style.opacity = "1"; return; }
+        resDiv.style.display = "block"; contentArea.style.opacity = "0.3"; listDiv.innerHTML = "";
         let found = false;
-
         state.cats.forEach(cat => {
             if(cat.depts) {
                 cat.depts.forEach(dept => {
-                    // بحث في الدكاترة
                     if(dept.clinics) {
                         for(let day in dept.clinics) {
                             dept.clinics[day].forEach(c => {
                                 if(c.doc.toLowerCase().includes(query)) {
                                     found = true;
-                                    listDiv.innerHTML += `<div class="data-card" style="border-right-color:var(--success)">
-                                        <div class="search-res-title" style="color:var(--primary)">دكتور في قسم: ${dept.name} (${day})</div>
-                                        <div class="data-value">د. ${c.doc}</div>
-                                        <div class="data-label">الموعد: ${c.time}</div>
-                                        <div class="badge-price">${c.price} ج.م</div>
-                                    </div>`;
+                                    listDiv.innerHTML += `<div class="data-card" style="border-right-color:var(--success)"><div class="search-res-title" style="color:var(--primary)">دكتور في قسم: ${dept.name} (${day})</div><div class="data-value">د. ${c.doc}</div><div class="data-label">الموعد: ${c.time}</div><div class="badge-price">${c.price} ج.م</div></div>`;
                                 }
                             });
                         }
                     }
-                    // بحث في الخدمات
                     if(dept.services) {
                         dept.services.forEach(s => {
                             if(s.name.toLowerCase().includes(query)) {
                                 found = true;
-                                listDiv.innerHTML += `<div class="data-card" style="border-right-color:var(--accent)">
-                                    <div class="search-res-title">خدمة في قسم: ${dept.name}</div>
-                                    <div class="data-value">${s.name}</div>
-                                    <div class="badge-price">${s.price} ج.م</div>
-                                </div>`;
+                                listDiv.innerHTML += `<div class="data-card" style="border-right-color:var(--accent)"><div class="search-res-title">خدمة في قسم: ${dept.name}</div><div class="data-value">${s.name}</div><div class="badge-price">${s.price} ج.م</div></div>`;
                             }
                         });
                     }
                 });
             }
         });
-
         if(!found) listDiv.innerHTML = "<p style='text-align:center; color:#999;'>لا توجد نتائج مطابقة</p>";
     }
 
@@ -234,11 +200,7 @@
         document.getElementById(id).classList.add('active');
         document.getElementById('master-footer').style.display = (id === 'screen-main') ? 'none' : 'flex';
         const routes = { 'screen-depts':'screen-main', 'screen-options':'screen-depts', 'screen-days':'screen-options', 'screen-clinics':'screen-days', 'screen-services':'screen-options' };
-        document.getElementById('back-btn').onclick = () => {
-            if(id === 'screen-depts') { document.getElementById('main-search').value = ""; doSearch(""); }
-            showScreen(routes[id]);
-        };
-        
+        document.getElementById('back-btn').onclick = () => { if(id === 'screen-depts') { document.getElementById('main-search').value = ""; doSearch(""); } showScreen(routes[id]); };
         if(id === 'screen-days') renderDays();
         if(id === 'screen-clinics') renderClinics();
         if(id === 'screen-services') renderServices();
@@ -249,11 +211,7 @@
         state.fb = document.getElementById('h-fb-input').value || state.fb;
         let n = document.getElementById('new-cat-name').value.trim();
         let u = document.getElementById('new-cat-url').value.trim();
-        if(n) { 
-            state.cats.push({ name: n, url: u, depts: [] }); 
-            document.getElementById('new-cat-name').value=''; 
-            document.getElementById('new-cat-url').value='';
-        }
+        if(n) { state.cats.push({ name: n, url: u, depts: [] }); document.getElementById('new-cat-name').value=''; document.getElementById('new-cat-url').value=''; }
         sync();
     }
 
@@ -263,11 +221,7 @@
             let action = c.url ? `window.open('${c.url}', '_blank')` : `openCat(${i})`;
             let style = c.url ? `style="background:#2ecc71"` : ""; 
             let icon = c.url ? `<i class="fas fa-external-link-alt external-link-icon"></i>` : "";
-            
-            div.innerHTML += `<div class="item-link" ${style} onclick="${action}">
-                <span class="clickable-area">${icon} ${c.name}</span>
-                <button class="btn-del-item" style="display:${isAdmin?'block':'none'}" onclick="event.stopPropagation(); if(confirm('حذف؟')){state.cats.splice(${i},1); sync();}">X</button>
-            </div>`;
+            div.innerHTML += `<div class="item-link" ${style} onclick="${action}"><span class="clickable-area">${icon} ${c.name}</span><button class="btn-del-item" style="display:${isAdmin?'block':'none'}" onclick="event.stopPropagation(); if(confirm('حذف؟')){state.cats.splice(${i},1); sync();}">X</button></div>`;
         });
         document.getElementById('h-fb-link').href = state.fb;
         document.getElementById('panel-main').style.display = isAdmin ? 'block' : 'none';
@@ -278,61 +232,27 @@
     function addDept() {
         let n = document.getElementById('dept-name').value.trim();
         let w = document.getElementById('dept-wa').value.trim();
-        if(n) { 
-            if(!state.cats[cur.cat].depts) state.cats[cur.cat].depts = [];
-            state.cats[cur.cat].depts.push({ name: n, wa: w, clinics: {}, services: [], days: [] }); 
-            document.getElementById('dept-name').value=''; document.getElementById('dept-wa').value='';
-            sync(); 
-        }
+        if(n) { if(!state.cats[cur.cat].depts) state.cats[cur.cat].depts = []; state.cats[cur.cat].depts.push({ name: n, wa: w, clinics: {}, services: [], days: [] }); document.getElementById('dept-name').value=''; document.getElementById('dept-wa').value=''; sync(); }
     }
 
     function renderDepts() {
         const div = document.getElementById('depts-list'); div.innerHTML = "";
         const depts = state.cats[cur.cat].depts || [];
-        depts.forEach((d, i) => {
-            div.innerHTML += `<div class="item-link" onclick="openDept(${i})"><span class="clickable-area">${d.name}</span><button class="btn-del-item" style="display:${isAdmin?'block':'none'}" onclick="event.stopPropagation(); if(confirm('حذف؟')){state.cats[cur.cat].depts.splice(${i},1); sync();}">X</button></div>`;
-        });
+        depts.forEach((d, i) => { div.innerHTML += `<div class="item-link" onclick="openDept(${i})"><span class="clickable-area">${d.name}</span><button class="btn-del-item" style="display:${isAdmin?'block':'none'}" onclick="event.stopPropagation(); if(confirm('حذف؟')){state.cats[cur.cat].depts.splice(${i},1); sync();}">X</button></div>`; });
         document.getElementById('panel-depts').style.display = isAdmin ? 'block' : 'none';
     }
 
-    function openDept(i) { 
-        cur.dept = i; 
-        const d = state.cats[cur.cat].depts[i];
-        document.getElementById('opt-dept-title').innerText = d.name;
-        document.getElementById('dept-wa-area').innerHTML = d.wa ? `<a href="https://wa.me/${d.wa}" target="_blank" class="btn-wa"><i class="fab fa-whatsapp"></i> تواصل عبر الواتساب</a>` : "";
-        showScreen('screen-options'); 
-    }
+    function openDept(i) { cur.dept = i; const d = state.cats[cur.cat].depts[i]; document.getElementById('opt-dept-title').innerText = d.name; document.getElementById('dept-wa-area').innerHTML = d.wa ? `<a href="https://wa.me/${d.wa}" target="_blank" class="btn-wa"><i class="fab fa-whatsapp"></i> تواصل عبر الواتساب</a>` : ""; showScreen('screen-options'); }
 
-    function addDay() {
-        const d = state.cats[cur.cat].depts[cur.dept];
-        let dayName = document.getElementById('new-day-name').value.trim();
-        if(!d.days) d.days = [];
-        if(dayName && !d.days.includes(dayName)) {
-            d.days.push(dayName);
-            document.getElementById('new-day-name').value = '';
-            sync();
-        }
-    }
+    function addDay() { const d = state.cats[cur.cat].depts[cur.dept]; let dayName = document.getElementById('new-day-name').value.trim(); if(!d.days) d.days = []; if(dayName && !d.days.includes(dayName)) { d.days.push(dayName); document.getElementById('new-day-name').value = ''; sync(); } }
 
-    function deleteDay(idx, dayName) {
-        if(confirm(`حذف (${dayName}) بمواعيده؟`)) {
-            const d = state.cats[cur.cat].depts[cur.dept];
-            d.days.splice(idx, 1);
-            if(d.clinics && d.clinics[dayName]) delete d.clinics[dayName];
-            sync();
-        }
-    }
+    function deleteDay(idx, dayName) { if(confirm(`حذف (${dayName}) بمواعيده؟`)) { const d = state.cats[cur.cat].depts[cur.dept]; d.days.splice(idx, 1); if(d.clinics && d.clinics[dayName]) delete d.clinics[dayName]; sync(); } }
 
     function renderDays() {
         const div = document.getElementById('days-list'); div.innerHTML = "";
         const d = state.cats[cur.cat].depts[cur.dept];
         const days = d.days || [];
-        days.forEach((day, idx) => {
-            div.innerHTML += `<div class="item-link" style="background:#5d6d7e" onclick="cur.day='${day}'; showScreen('screen-clinics')">
-                <span class="clickable-area">${day}</span>
-                <button class="btn-del-item" style="display:${isAdmin?'block':'none'}" onclick="event.stopPropagation(); deleteDay(${idx}, '${day}')">X</button>
-            </div>`;
-        });
+        days.forEach((day, idx) => { div.innerHTML += `<div class="item-link" style="background:#5d6d7e" onclick="cur.day='${day}'; showScreen('screen-clinics')"><span class="clickable-area">${day}</span><button class="btn-del-item" style="display:${isAdmin?'block':'none'}" onclick="event.stopPropagation(); deleteDay(${idx}, '${day}')">X</button></div>`; });
         document.getElementById('panel-days').style.display = isAdmin ? 'block' : 'none';
     }
 
@@ -340,8 +260,11 @@
         const d = state.cats[cur.cat].depts[cur.dept];
         if(!d.clinics) d.clinics = {};
         if(!d.clinics[cur.day]) d.clinics[cur.day] = [];
-        d.clinics[cur.day].push({ doc: document.getElementById('c-doc').value, time: document.getElementById('c-time').value, price: document.getElementById('c-price').value, wa: document.getElementById('c-wa').value });
-        document.getElementById('c-doc').value=''; document.getElementById('c-time').value=''; document.getElementById('c-price').value=''; document.getElementById('c-wa').value='';
+        
+        const timeStr = `من ${document.getElementById('t-from').value}:00 ${document.getElementById('p-from').value} إلى ${document.getElementById('t-to').value}:00 ${document.getElementById('p-to').value}`;
+        
+        d.clinics[cur.day].push({ doc: document.getElementById('c-doc').value, time: timeStr, price: document.getElementById('c-price').value, wa: document.getElementById('c-wa').value });
+        document.getElementById('c-doc').value=''; document.getElementById('t-from').value=''; document.getElementById('t-to').value=''; document.getElementById('c-price').value=''; document.getElementById('c-wa').value='';
         sync();
     }
 
@@ -350,46 +273,21 @@
         const div = document.getElementById('clinics-list'); div.innerHTML = "";
         const d = state.cats[cur.cat].depts[cur.dept];
         const list = (d.clinics && d.clinics[cur.day]) ? d.clinics[cur.day] : [];
-        list.forEach((c, i) => {
-            div.innerHTML += `<div class="data-card">
-                <div class="data-row"><span class="data-label">الدكتور:</span><span class="data-value">د. ${c.doc}</span></div>
-                <div class="data-row"><span class="data-label">الموعد:</span><span class="data-value">${c.time}</span></div>
-                <div class="badge-price">${c.price} ج.م</div>
-                ${c.wa ? `<a href="https://wa.me/${c.wa}" target="_blank" class="btn-wa"><i class="fab fa-whatsapp"></i> تواصل عبر الواتساب</a>` : ""}
-                <button class="btn-del-item" style="display:${isAdmin?'block':'none'}" onclick="state.cats[cur.cat].depts[cur.dept].clinics[cur.day].splice(${i},1); sync();">X</button>
-            </div>`;
-        });
+        list.forEach((c, i) => { div.innerHTML += `<div class="data-card"><div class="data-row"><span class="data-label">الدكتور:</span><span class="data-value">د. ${c.doc}</span></div><div class="data-row"><span class="data-label">الموعد:</span><span class="data-value">${c.time}</span></div><div class="badge-price">${c.price} ج.م</div>${c.wa ? `<a href="https://wa.me/${c.wa}" target="_blank" class="btn-wa"><i class="fab fa-whatsapp"></i> تواصل عبر الواتساب</a>` : ""}<button class="btn-del-item" style="display:${isAdmin?'block':'none'}" onclick="state.cats[cur.cat].depts[cur.dept].clinics[cur.day].splice(${i},1); sync();">X</button></div>`; });
         document.getElementById('panel-clinics').style.display = isAdmin ? 'block' : 'none';
     }
 
-    function addService() {
-        const d = state.cats[cur.cat].depts[cur.dept];
-        if(!d.services) d.services = [];
-        d.services.push({ name: document.getElementById('s-name').value, price: document.getElementById('s-price').value });
-        document.getElementById('s-name').value=''; document.getElementById('s-price').value='';
-        sync();
-    }
+    function addService() { const d = state.cats[cur.cat].depts[cur.dept]; if(!d.services) d.services = []; d.services.push({ name: document.getElementById('s-name').value, price: document.getElementById('s-price').value }); document.getElementById('s-name').value=''; document.getElementById('s-price').value=''; sync(); }
 
     function renderServices() {
         const div = document.getElementById('services-list'); div.innerHTML = "";
         const d = state.cats[cur.cat].depts[cur.dept];
         const list = d.services || [];
-        list.forEach((s, i) => {
-            div.innerHTML += `<div class="data-card">
-                <div class="data-value">${s.name}</div>
-                <div class="badge-price">${s.price} ج.م</div>
-                <button class="btn-del-item" style="display:${isAdmin?'block':'none'}" onclick="state.cats[cur.cat].depts[cur.dept].services.splice(${i},1); sync();">X</button>
-            </div>`;
-        });
+        list.forEach((s, i) => { div.innerHTML += `<div class="data-card"><div class="data-value">${s.name}</div><div class="badge-price">${s.price} ج.م</div><button class="btn-del-item" style="display:${isAdmin?'block':'none'}" onclick="state.cats[cur.cat].depts[cur.dept].services.splice(${i},1); sync();">X</button></div>`; });
         document.getElementById('panel-services').style.display = isAdmin ? 'block' : 'none';
     }
 
-    function renderAll() { 
-        renderMain(); 
-        if(cur.cat!==null) renderDepts(); 
-        if(cur.cat!==null && cur.dept!==null) { renderDays(); renderServices(); }
-        if(cur.day) renderClinics(); 
-    }
+    function renderAll() { renderMain(); if(cur.cat!==null) renderDepts(); if(cur.cat!==null && cur.dept!==null) { renderDays(); renderServices(); } if(cur.day) renderClinics(); }
     load();
 </script>
 </body>

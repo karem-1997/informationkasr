@@ -34,6 +34,11 @@
         .btn-back-main { background: var(--primary); color: white; width: 90%; max-width: 460px; padding: 14px; border-radius: 10px; text-align: center; font-weight: bold; cursor: pointer; border: none; }
         .screen { display: none; } .active { display: block; }
         .external-link-icon { float: left; margin-top: 3px; font-size: 0.9rem; opacity: 0.8; }
+        /* ستايل البحث */
+        .search-box { margin-bottom: 20px; position: relative; }
+        .search-box input { padding-right: 40px; border: 2px solid var(--secondary); }
+        .search-box i { position: absolute; right: 15px; top: 15px; color: var(--secondary); }
+        .search-res-title { font-size: 0.9rem; color: var(--danger); font-weight: bold; margin-bottom: 10px; display: block; }
     </style>
 </head>
 <body>
@@ -43,16 +48,28 @@
     <a id="h-fb-link" href="#" target="_blank" class="fb-float"><i class="fab fa-facebook-f"></i></a>
 
     <div id="screen-main" class="screen active">
-        <div id="panel-main" class="admin-panel">
-            <b>الإعدادات:</b>
-            <input type="text" id="h-fb-input" placeholder="رابط فيسبوك المستشفى">
-            <hr>
-            <b>إضافة (قسم داخلي أو رابط خارجي):</b>
-            <input type="text" id="new-cat-name" placeholder="اسم القسم أو الزر">
-            <input type="text" id="new-cat-url" placeholder="الرابط (اتركه فارغاً للقسم الداخلي)">
-            <button onclick="saveMainSettings()" style="background:var(--success); color:white; width:100%; padding:12px; border:none; border-radius:8px;">حفظ وإضافة</button>
+        <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" id="main-search" placeholder="ابحث عن دكتور، قسم، أو خدمة..." oninput="doSearch(this.value)">
         </div>
-        <div class="list-menu" id="cats-list"></div>
+
+        <div id="search-results-area" style="display:none; margin-bottom:20px; border-bottom:2px solid #eee; padding-bottom:10px;">
+            <span class="search-res-title">نتائج البحث:</span>
+            <div id="search-list"></div>
+        </div>
+
+        <div id="main-content-area">
+            <div id="panel-main" class="admin-panel">
+                <b>الإعدادات:</b>
+                <input type="text" id="h-fb-input" placeholder="رابط فيسبوك المستشفى">
+                <hr>
+                <b>إضافة (قسم داخلي أو رابط خارجي):</b>
+                <input type="text" id="new-cat-name" placeholder="اسم القسم أو الزر">
+                <input type="text" id="new-cat-url" placeholder="الرابط (اتركه فارغاً للقسم الداخلي)">
+                <button onclick="saveMainSettings()" style="background:var(--success); color:white; width:100%; padding:12px; border:none; border-radius:8px;">حفظ وإضافة</button>
+            </div>
+            <div class="list-menu" id="cats-list"></div>
+        </div>
         <button class="admin-trigger-btn" onclick="checkAuth()">⚙️ إدارة النظام</button>
     </div>
 
@@ -155,12 +172,72 @@
         }
     }
 
+    // وظيفة البحث الشامل
+    function doSearch(val) {
+        const query = val.trim().toLowerCase();
+        const resDiv = document.getElementById('search-results-area');
+        const listDiv = document.getElementById('search-list');
+        const contentArea = document.getElementById('main-content-area');
+
+        if (query.length < 2) {
+            resDiv.style.display = "none";
+            contentArea.style.opacity = "1";
+            return;
+        }
+
+        resDiv.style.display = "block";
+        contentArea.style.opacity = "0.3";
+        listDiv.innerHTML = "";
+        let found = false;
+
+        state.cats.forEach(cat => {
+            if(cat.depts) {
+                cat.depts.forEach(dept => {
+                    // بحث في الدكاترة
+                    if(dept.clinics) {
+                        for(let day in dept.clinics) {
+                            dept.clinics[day].forEach(c => {
+                                if(c.doc.toLowerCase().includes(query)) {
+                                    found = true;
+                                    listDiv.innerHTML += `<div class="data-card" style="border-right-color:var(--success)">
+                                        <div class="search-res-title" style="color:var(--primary)">دكتور في قسم: ${dept.name} (${day})</div>
+                                        <div class="data-value">د. ${c.doc}</div>
+                                        <div class="data-label">الموعد: ${c.time}</div>
+                                        <div class="badge-price">${c.price} ج.م</div>
+                                    </div>`;
+                                }
+                            });
+                        }
+                    }
+                    // بحث في الخدمات
+                    if(dept.services) {
+                        dept.services.forEach(s => {
+                            if(s.name.toLowerCase().includes(query)) {
+                                found = true;
+                                listDiv.innerHTML += `<div class="data-card" style="border-right-color:var(--accent)">
+                                    <div class="search-res-title">خدمة في قسم: ${dept.name}</div>
+                                    <div class="data-value">${s.name}</div>
+                                    <div class="badge-price">${s.price} ج.م</div>
+                                </div>`;
+                            }
+                        });
+                    }
+                });
+            }
+        });
+
+        if(!found) listDiv.innerHTML = "<p style='text-align:center; color:#999;'>لا توجد نتائج مطابقة</p>";
+    }
+
     function showScreen(id) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.getElementById(id).classList.add('active');
         document.getElementById('master-footer').style.display = (id === 'screen-main') ? 'none' : 'flex';
         const routes = { 'screen-depts':'screen-main', 'screen-options':'screen-depts', 'screen-days':'screen-options', 'screen-clinics':'screen-days', 'screen-services':'screen-options' };
-        document.getElementById('back-btn').onclick = () => showScreen(routes[id]);
+        document.getElementById('back-btn').onclick = () => {
+            if(id === 'screen-depts') { document.getElementById('main-search').value = ""; doSearch(""); }
+            showScreen(routes[id]);
+        };
         
         if(id === 'screen-days') renderDays();
         if(id === 'screen-clinics') renderClinics();

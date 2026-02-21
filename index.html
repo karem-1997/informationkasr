@@ -56,18 +56,17 @@
     <header><h1>استعلامات مستشفى القصر العيني الفرنساوي</h1></header>
 
     <a id="fb-link" href="#" target="_blank" class="fb-float"><i class="fab fa-facebook-f"></i></a>
-
     <button class="secret-trigger" onclick="checkAuth()"></button>
 
     <div id="search-box" class="search-container">
-        <input type="text" class="search-input" id="smart-search" placeholder="ابحث عن دكتور أو عيادة..." oninput="doSearch()">
+        <input type="text" class="search-input" id="smart-search" placeholder="ابحث عن دكتور، عيادة، أو خدمة..." oninput="doSearch()">
         <div id="results" class="search-results"></div>
     </div>
 
     <div id="screen-main" class="screen active">
         <div id="panel-main" class="admin-panel">
-            <b>رابط فيسبوك:</b>
-            <input type="text" id="fb-url-input" placeholder="ضع رابط الصفحة هنا">
+            <b>رابط الفيسبوك:</b>
+            <input type="text" id="fb-url-input" placeholder="رابط الصفحة">
             <button onclick="saveFb()" style="background:var(--primary); color:white; width:100%; padding:8px; margin-bottom:15px; border:none; border-radius:5px;">تحديث الرابط</button>
             <hr>
             <b>إضافة قسم رئيسي:</b>
@@ -80,7 +79,7 @@
     <div id="screen-depts" class="screen">
         <div id="panel-depts" class="admin-panel">
             <input type="text" id="new-dept" placeholder="اسم العيادة">
-            <button onclick="addDept()" style="background:var(--success); color:white; width:100%; padding:10px; border:none; border-radius:5px;">إضافة</button>
+            <button onclick="addDept()" style="background:var(--success); color:white; width:100%; padding:10px; border:none; border-radius:5px;">إضافة عيادة</button>
         </div>
         <div class="list-menu" id="depts-list"></div>
     </div>
@@ -105,7 +104,7 @@
     <div id="screen-days" class="screen">
         <div id="panel-days" class="admin-panel">
             <input type="text" id="new-day" placeholder="اليوم (السبت، الأحد...)">
-            <button onclick="addDay()" style="background:var(--success); color:white; width:100%; padding:10px; border:none; border-radius:5px;">إضافة</button>
+            <button onclick="addDay()" style="background:var(--success); color:white; width:100%; padding:10px; border:none; border-radius:5px;">إضافة يوم</button>
         </div>
         <div class="list-menu" id="days-list"></div>
     </div>
@@ -147,15 +146,14 @@
     const dayOrder = { "السبت":1, "الأحد":2, "الاثنين":3, "الثلاثاء":4, "الأربعاء":5, "الخميس":6, "الجمعة":7 };
 
     async function load() {
-        const doc = await db.collection("app").doc("final_v3").get();
+        const doc = await db.collection("app").doc("final_stable_v1").get();
         if(doc.exists) state = doc.data();
         document.getElementById('fb-link').href = state.fb || "#";
         renderAll();
     }
-    async function sync() { await db.collection("app").doc("final_v3").set(state); renderAll(); }
+    async function sync() { await db.collection("app").doc("final_stable_v1").set(state); renderAll(); }
 
     function checkAuth() { if(prompt("الباسورد:") === "1987") { isAdmin = true; renderAll(); } }
-
     function saveFb() { state.fb = document.getElementById('fb-url-input').value; sync(); }
 
     function doSearch() {
@@ -172,6 +170,9 @@
                         if(c.doc.toLowerCase().includes(q)) res.push({t: `د. ${c.doc}`, s: `موعد ${day} - عيادة ${dept.name}`, a: () => { cur.cat=ci; cur.dept=di; cur.day=day; showScreen('screen-clinics'); }});
                     });
                 }
+                (dept.services || []).forEach(s => {
+                    if(s.name.toLowerCase().includes(q)) res.push({t: s.name, s: `خدمة في ${dept.name}`, a: () => { cur.cat=ci; cur.dept=di; showScreen('screen-services'); }});
+                });
             });
         });
         if(res.length > 0) {
@@ -195,8 +196,8 @@
         renderAll();
     }
 
-    function addCat() { let n = document.getElementById('new-cat').value; if(n) { state.cats.push({ name: n, depts: [] }); sync(); } }
-    function addDept() { let n = document.getElementById('new-dept').value; if(n) { state.cats[cur.cat].depts.push({ name: n, days: [], clinics: {}, services: [] }); sync(); } }
+    function addCat() { let n = document.getElementById('new-cat').value; if(n) { state.cats.push({ name: n, depts: [] }); sync(); document.getElementById('new-cat').value=""; } }
+    function addDept() { let n = document.getElementById('new-dept').value; if(n) { state.cats[cur.cat].depts.push({ name: n, days: [], clinics: {}, services: [] }); sync(); document.getElementById('new-dept').value=""; } }
     
     function addDay() { 
         let n = document.getElementById('new-day').value.trim(); 
@@ -204,13 +205,13 @@
             let d = state.cats[cur.cat].depts[cur.dept];
             if(!d.days.includes(n)) d.days.push(n);
             d.days.sort((a,b) => (dayOrder[a]||99) - (dayOrder[b]||99));
-            sync(); 
+            sync(); document.getElementById('new-day').value="";
         } 
     }
 
     function addService() {
         let n = document.getElementById('s-name').value, p = document.getElementById('s-price').value;
-        if(n && p) { state.cats[cur.cat].depts[cur.dept].services.push({name:n, price:p}); sync(); }
+        if(n && p) { state.cats[cur.cat].depts[cur.dept].services.push({name:n, price:p}); sync(); document.getElementById('s-name').value=""; document.getElementById('s-price').value=""; }
     }
 
     function saveDoc() {
@@ -237,19 +238,16 @@
     function renderAll() {
         const adminStyle = isAdmin ? 'block' : 'none';
         document.getElementById('fb-link').href = state.fb || "#";
-        
         const catsDiv = document.getElementById('cats-list'); catsDiv.innerHTML = "";
         state.cats.forEach((c, i) => {
             catsDiv.innerHTML += `<div class="item-link" onclick="cur.cat=${i};showScreen('screen-depts')"><span class="clickable-area">${c.name}</span><button class="btn-del-item" style="display:${adminStyle}" onclick="event.stopPropagation();state.cats.splice(${i},1);sync();">X</button></div>`;
         });
-
         if(cur.cat !== null) {
             const deptsDiv = document.getElementById('depts-list'); deptsDiv.innerHTML = "";
             (state.cats[cur.cat].depts || []).forEach((d, i) => {
                 deptsDiv.innerHTML += `<div class="item-link" onclick="cur.dept=${i};showScreen('screen-options')"><span class="clickable-area">${d.name}</span><button class="btn-del-item" style="display:${adminStyle}" onclick="event.stopPropagation();state.cats[cur.cat].depts.splice(${i},1);sync();">X</button></div>`;
             });
         }
-
         if(cur.cat !== null && cur.dept !== null) {
             let d = state.cats[cur.cat].depts[cur.dept];
             document.getElementById('opt-title').innerText = d.name;
@@ -262,20 +260,11 @@
                 daysDiv.innerHTML += `<div class="item-link" onclick="cur.day='${day}';showScreen('screen-clinics')"><span class="clickable-area">${day}</span><button class="btn-del-item" style="display:${adminStyle}" onclick="event.stopPropagation();state.cats[cur.cat].depts[cur.dept].days.splice(${i},1);sync();">X</button></div>`;
             });
         }
-
         if(cur.day !== null) {
             const cList = document.getElementById('clinics-list'); cList.innerHTML = "";
             let d = state.cats[cur.cat].depts[cur.dept];
             (d.clinics[cur.day] || []).forEach((c, i) => {
-                cList.innerHTML += `<div class="data-card">
-                    <b>د. ${c.doc}</b><br>
-                    <span><i class="far fa-clock"></i> ${c.time}</span><br>
-                    <div class="badge-price">${c.price} ج.م</div><br>
-                    ${c.whatsapp ? `<a href="https://wa.me/${c.whatsapp}" class="whatsapp-btn"><i class="fab fa-whatsapp"></i> واتساب</a>` : ''}
-                    ${c.notes ? `<div style="font-size:0.85rem; background:#f0f0f0; padding:5px; margin-top:5px; border-radius:5px;">📝 ${c.notes}</div>` : ''}
-                    <button class="btn-del-item" style="display:${adminStyle}" onclick="state.cats[cur.cat].depts[cur.dept].clinics['${cur.day}'].splice(${i},1);sync();">X</button>
-                    <button class="btn-edit-item" style="display:${adminStyle}" onclick="startEdit(${i})">✎</button>
-                </div>`;
+                cList.innerHTML += `<div class="data-card"><b>د. ${c.doc}</b><br><span><i class="far fa-clock"></i> ${c.time}</span><br><div class="badge-price">${c.price} ج.م</div><br>${c.whatsapp ? `<a href="https://wa.me/${c.whatsapp}" class="whatsapp-btn"><i class="fab fa-whatsapp"></i> واتساب</a>` : ''}${c.notes ? `<div style="font-size:0.85rem; background:#f0f0f0; padding:5px; margin-top:5px; border-radius:5px;">📝 ${c.notes}</div>` : ''}<button class="btn-del-item" style="display:${adminStyle}" onclick="state.cats[cur.cat].depts[cur.dept].clinics['${cur.day}'].splice(${i},1);sync();">X</button><button class="btn-edit-item" style="display:${adminStyle}" onclick="startEdit(${i})">✎</button></div>`;
             });
         }
         document.querySelectorAll('.admin-panel').forEach(p => p.style.display = adminStyle);

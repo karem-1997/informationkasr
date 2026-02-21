@@ -14,8 +14,18 @@
         :root { --primary: #1a5276; --secondary: #2980b9; --success: #27ae60; --danger: #c0392b; --accent: #f39c12; --bg: #d5d8dc; }
         body { font-family: 'Tajawal', sans-serif; background-color: var(--bg); margin: 0; padding: 10px; padding-bottom: 110px; direction: rtl; }
         .container { max-width: 500px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); min-height: 85vh; position: relative; }
-        header { text-align: center; margin-bottom: 20px; border-bottom: 3px solid var(--secondary); padding-bottom: 10px; }
+        header { text-align: center; margin-bottom: 15px; border-bottom: 3px solid var(--secondary); padding-bottom: 10px; }
         h1 { color: var(--primary); font-size: 1.2rem; margin: 0; }
+        
+        /* تنسيق البحث الذكي */
+        .search-container { margin-bottom: 20px; position: relative; }
+        .search-input { width: 100%; padding: 15px; border: 2px solid var(--secondary); border-radius: 10px; font-size: 1rem; font-family: 'Tajawal'; box-sizing: border-box; outline: none; }
+        .search-results { position: absolute; width: 100%; background: white; z-index: 2000; border-radius: 0 0 10px 10px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); max-height: 300px; overflow-y: auto; display: none; border: 1px solid #ddd; border-top: none; }
+        .search-item { padding: 12px; border-bottom: 1px solid #eee; cursor: pointer; }
+        .search-item:hover { background: #f8f9fa; }
+        .search-item b { color: var(--primary); }
+        .search-item small { color: #666; display: block; font-size: 0.8rem; }
+
         .fb-float { position: fixed; bottom: 85px; left: 20px; background: #1877f2; color: white; width: 55px; height: 55px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 1000; text-decoration: none; border: 2px solid #fff; }
         .admin-panel { display: none; background: #e8f6f3; padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 2px dashed var(--success); }
         input, select, textarea { padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-family: 'Tajawal'; width: 100%; box-sizing: border-box; margin-bottom: 8px; font-size: 1rem; }
@@ -42,6 +52,11 @@
     <a id="h-fb-link" href="#" target="_blank" class="fb-float"><i class="fab fa-facebook-f"></i></a>
 
     <button class="secret-admin-btn" onclick="checkAuth()"></button>
+
+    <div id="main-search-area" class="search-container">
+        <input type="text" class="search-input" id="smart-search" placeholder="ابحث عن دكتور، عيادة، أو خدمة..." oninput="doSmartSearch()">
+        <div id="search-results-box" class="search-results"></div>
+    </div>
 
     <div id="screen-main" class="screen active">
         <div id="panel-main" class="admin-panel">
@@ -70,8 +85,7 @@
 
     <div id="screen-services" class="screen">
         <div id="panel-services" class="admin-panel">
-            <b>إضافة خدمة جديدة:</b>
-            <input type="text" id="s-name" placeholder="اسم الخدمة (مثل: رنين مغناطيسي)">
+            <input type="text" id="s-name" placeholder="اسم الخدمة">
             <input type="number" id="s-price" placeholder="السعر">
             <button onclick="addService()" style="background:var(--success); color:white; width:100%; padding:12px; border:none; border-radius:8px;">حفظ الخدمة</button>
         </div>
@@ -90,14 +104,8 @@
         <div id="panel-clinics" class="admin-panel">
             <input type="hidden" id="edit-id" value="">
             <input type="text" id="c-doc" placeholder="اسم الدكتور">
-            <div class="time-row">
-                <input type="number" id="h-from" placeholder="من (ساعة)">
-                <select id="p-from"><option>صباحاً</option><option>مساءً</option></select>
-            </div>
-            <div class="time-row">
-                <input type="number" id="h-to" placeholder="إلى (ساعة)">
-                <select id="p-to"><option>صباحاً</option><option>مساءً</option></select>
-            </div>
+            <div class="time-row"><input type="number" id="h-from" placeholder="من"> <select id="p-from"><option>صباحاً</option><option>مساءً</option></select></div>
+            <div class="time-row"><input type="number" id="h-to" placeholder="إلى"> <select id="p-to"><option>صباحاً</option><option>مساءً</option></select></div>
             <input type="number" id="c-price" placeholder="سعر الكشف">
             <input type="text" id="c-whatsapp" placeholder="رقم الواتساب">
             <textarea id="c-notes" placeholder="ملاحظات"></textarea>
@@ -132,87 +140,93 @@
     }
     async function sync() { await db.collection("app").doc("data").set(state); renderAll(); }
 
-    function checkAuth() { 
-        if(prompt("الباسورد:") === "1987") { isAdmin = true; renderAll(); } 
+    function checkAuth() { if(prompt("الباسورد:") === "1987") { isAdmin = true; renderAll(); } }
+
+    // محرك البحث الذكي
+    function doSmartSearch() {
+        let query = document.getElementById('smart-search').value.toLowerCase();
+        let box = document.getElementById('search-results-box');
+        if(!query) { box.style.display = "none"; return; }
+        
+        box.innerHTML = "";
+        let results = [];
+
+        state.cats.forEach((cat, ci) => {
+            cat.depts.forEach((dept, di) => {
+                // بحث في اسم العيادة
+                if(dept.name.toLowerCase().includes(query)) results.push({title: dept.name, sub: `عيادة في ${cat.name}`, action: () => { cur.cat=ci; cur.dept=di; showScreen('screen-options'); }});
+                
+                // بحث في الدكاترة
+                for(let day in dept.clinics) {
+                    dept.clinics[day].forEach(c => {
+                        if(c.doc.toLowerCase().includes(query)) results.push({title: `د. ${c.doc}`, sub: `موعد ${day} في عيادة ${dept.name}`, action: () => { cur.cat=ci; cur.dept=di; cur.day=day; showScreen('screen-clinics'); }});
+                    });
+                }
+
+                // بحث في الخدمات
+                (dept.services || []).forEach(s => {
+                    if(s.name.toLowerCase().includes(query)) results.push({title: s.name, sub: `خدمة في عيادة ${dept.name} - السعر: ${s.price}ج`, action: () => { cur.cat=ci; cur.dept=di; showScreen('screen-services'); }});
+                });
+            });
+        });
+
+        if(results.length > 0) {
+            box.style.display = "block";
+            results.slice(0, 10).forEach(r => {
+                let div = document.createElement('div');
+                div.className = "search-item";
+                div.innerHTML = `<b>${r.title}</b><small>${r.sub}</small>`;
+                div.onclick = () => { r.action(); box.style.display="none"; document.getElementById('smart-search').value=""; };
+                box.appendChild(div);
+            });
+        } else {
+            box.style.display = "none";
+        }
     }
 
     function showScreen(id) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.getElementById(id).classList.add('active');
         document.getElementById('master-footer').style.display = (id === 'screen-main') ? 'none' : 'flex';
+        // إخفاء البحث في غير الشاشة الرئيسية لترك مساحة
+        document.getElementById('main-search-area').style.display = (id === 'screen-main') ? 'block' : 'none';
+        
         const backMap = { 'screen-depts':'screen-main', 'screen-options':'screen-depts', 'screen-days':'screen-options', 'screen-clinics':'screen-days', 'screen-services':'screen-options' };
         document.getElementById('back-btn').onclick = () => showScreen(backMap[id]);
         renderAll();
     }
 
-    function saveMainSettings() {
-        let n = document.getElementById('new-cat-name').value;
-        if(n) { state.cats.push({ name: n, depts: [] }); sync(); }
-    }
-    function addDept() {
-        let n = document.getElementById('dept-name').value;
-        if(n) { state.cats[cur.cat].depts.push({ name: n, days: [], clinics: {}, services: [] }); sync(); }
-    }
-    function addDay() {
-        let n = document.getElementById('new-day-name').value;
-        if(n) { state.cats[cur.cat].depts[cur.dept].days.push(n); sync(); }
-    }
-
-    // إدارة الخدمات (التي عادت للعمل)
-    function addService() {
-        let n = document.getElementById('s-name').value;
-        let p = document.getElementById('s-price').value;
-        if(n && p) {
-            let d = state.cats[cur.cat].depts[cur.dept];
-            if(!d.services) d.services = [];
-            d.services.push({ name: n, price: p });
-            sync();
-            document.getElementById('s-name').value = "";
-            document.getElementById('s-price').value = "";
-        }
+    // دوال الحفظ التقليدية (نفس الكود السابق)
+    function saveMainSettings() { let n = document.getElementById('new-cat-name').value; if(n) { state.cats.push({ name: n, depts: [] }); sync(); } }
+    function addDept() { let n = document.getElementById('dept-name').value; if(n) { state.cats[cur.cat].depts.push({ name: n, days: [], clinics: {}, services: [] }); sync(); } }
+    function addDay() { let n = document.getElementById('new-day-name').value; if(n) { state.cats[cur.cat].depts[cur.dept].days.push(n); sync(); } }
+    function addService() { 
+        let n = document.getElementById('s-name').value, p = document.getElementById('s-price').value;
+        if(n && p) { let d = state.cats[cur.cat].depts[cur.dept]; if(!d.services) d.services = []; d.services.push({ name: n, price: p }); sync(); }
     }
 
     function saveClinic() {
         let d = state.cats[cur.cat].depts[cur.dept];
         if(!d.clinics[cur.day]) d.clinics[cur.day] = [];
-        let fullTime = `من ${document.getElementById('h-from').value} ${document.getElementById('p-from').value} إلى ${document.getElementById('h-to').value} ${document.getElementById('p-to').value}`;
-        let clinicData = {
-            doc: document.getElementById('c-doc').value,
-            time: fullTime,
-            price: document.getElementById('c-price').value,
-            whatsapp: document.getElementById('c-whatsapp').value,
-            notes: document.getElementById('c-notes').value
-        };
-        let editId = document.getElementById('edit-id').value;
-        if(editId === "") d.clinics[cur.day].push(clinicData);
-        else d.clinics[cur.day][editId] = clinicData;
-        clearClinicForm();
-        sync();
+        let time = `من ${document.getElementById('h-from').value} ${document.getElementById('p-from').value} إلى ${document.getElementById('h-to').value} ${document.getElementById('p-to').value}`;
+        let data = { doc: document.getElementById('c-doc').value, time: time, price: document.getElementById('c-price').value, whatsapp: document.getElementById('c-whatsapp').value, notes: document.getElementById('c-notes').value };
+        let eid = document.getElementById('edit-id').value;
+        if(eid === "") d.clinics[cur.day].push(data); else d.clinics[cur.day][eid] = data;
+        clearClinicForm(); sync();
     }
 
     function startEdit(idx) {
         let c = state.cats[cur.cat].depts[cur.dept].clinics[cur.day][idx];
-        document.getElementById('c-doc').value = c.doc;
-        document.getElementById('c-price').value = c.price;
-        document.getElementById('c-whatsapp').value = c.whatsapp || "";
-        document.getElementById('c-notes').value = c.notes || "";
-        document.getElementById('edit-id').value = idx;
-        document.getElementById('save-btn').innerText = "تعديل";
-        document.getElementById('cancel-edit').style.display = "block";
-        window.scrollTo(0,0);
+        document.getElementById('c-doc').value = c.doc; document.getElementById('c-price').value = c.price;
+        document.getElementById('c-whatsapp').value = c.whatsapp || ""; document.getElementById('c-notes').value = c.notes || "";
+        document.getElementById('edit-id').value = idx; document.getElementById('save-btn').innerText = "تعديل";
+        document.getElementById('cancel-edit').style.display = "block"; window.scrollTo(0,0);
     }
 
-    function clearClinicForm() {
-        document.getElementById('c-doc').value = "";
-        document.getElementById('edit-id').value = "";
-        document.getElementById('save-btn').innerText = "حفظ";
-        document.getElementById('cancel-edit').style.display = "none";
-    }
+    function clearClinicForm() { document.getElementById('c-doc').value = ""; document.getElementById('edit-id').value = ""; document.getElementById('save-btn').innerText = "حفظ"; document.getElementById('cancel-edit').style.display = "none"; }
 
     function renderAll() {
         const adminStyle = isAdmin ? 'block' : 'none';
-        
-        // رندرة الأقسام والعيادات والأيام كالعادة
         const catsDiv = document.getElementById('cats-list'); catsDiv.innerHTML = "";
         state.cats.forEach((c, i) => {
             catsDiv.innerHTML += `<div class="item-link" onclick="cur.cat=${i};showScreen('screen-depts')"><span class="clickable-area">${c.name}</span><button class="btn-del-item" style="display:${adminStyle}" onclick="event.stopPropagation();state.cats.splice(${i},1);sync();">X</button></div>`;
@@ -228,14 +242,10 @@
         if(cur.cat !== null && cur.dept !== null) {
             let d = state.cats[cur.cat].depts[cur.dept];
             document.getElementById('opt-title').innerText = d.name;
-            
-            // رندرة الخدمات
             const sList = document.getElementById('services-list'); sList.innerHTML = "";
             (d.services || []).forEach((s, i) => {
                 sList.innerHTML += `<div class="data-card"><b>${s.name}</b><br><div class="badge-price">${s.price} ج.م</div><button class="btn-del-item" style="display:${adminStyle}" onclick="state.cats[cur.cat].depts[cur.dept].services.splice(${i},1);sync();">X</button></div>`;
             });
-
-            // رندرة الأيام
             const daysDiv = document.getElementById('days-list'); daysDiv.innerHTML = "";
             (d.days || []).forEach((day, i) => {
                 daysDiv.innerHTML += `<div class="item-link" onclick="cur.day='${day}';showScreen('screen-clinics')"><span class="clickable-area">${day}</span><button class="btn-del-item" style="display:${adminStyle}" onclick="event.stopPropagation();state.cats[cur.cat].depts[cur.dept].days.splice(${i},1);sync();">X</button></div>`;
@@ -249,7 +259,6 @@
                 cList.innerHTML += `<div class="data-card"><b>د. ${c.doc}</b><br><span>${c.time}</span><br><div class="badge-price">${c.price} ج.م</div><br>${c.whatsapp ? `<a href="https://wa.me/${c.whatsapp}" class="whatsapp-btn">واتساب</a>` : ''}${c.notes ? `<div class="notes-display">📝 ${c.notes}</div>` : ''}<button class="btn-del-item" style="display:${adminStyle}" onclick="state.cats[cur.cat].depts[cur.dept].clinics['${cur.day}'].splice(${i},1);sync();">X</button><button class="btn-edit-item" style="display:${adminStyle}" onclick="startEdit(${i})">✎</button></div>`;
             });
         }
-        
         document.querySelectorAll('.admin-panel').forEach(p => p.style.display = adminStyle);
     }
     load();

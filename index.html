@@ -17,13 +17,11 @@
         header { text-align: center; margin-bottom: 15px; border-bottom: 3px solid var(--secondary); padding-bottom: 10px; }
         h1 { color: var(--primary); font-size: 1.1rem; margin: 0; }
 
-        /* البحث الذكي */
         .search-container { margin-bottom: 20px; position: relative; }
         .search-input { width: 100%; padding: 15px; border: 2px solid var(--secondary); border-radius: 10px; font-size: 1rem; font-family: 'Tajawal'; box-sizing: border-box; outline: none; }
         .search-results { position: absolute; width: 100%; background: white; z-index: 2000; border-radius: 0 0 10px 10px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); max-height: 300px; overflow-y: auto; display: none; border: 1px solid #ddd; }
         .search-item { padding: 12px; border-bottom: 1px solid #eee; cursor: pointer; text-align: right; }
 
-        /* زر الفيسبوك العائم */
         .fb-float { position: fixed; bottom: 85px; left: 20px; background: #1877f2; color: white; width: 55px; height: 55px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 1000; text-decoration: none; border: 2px solid #fff; }
 
         .admin-panel { display: none; background: #e8f6f3; padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 2px dashed var(--success); }
@@ -31,7 +29,7 @@
         
         .list-menu { display: flex; flex-direction: column; gap: 12px; }
         .item-link { position: relative; background: var(--secondary); border-radius: 12px; cursor: pointer; display: block; width: 100%; border: none; padding: 0; }
-        .clickable-area { display: block; padding: 18px; color: white; text-align: center; font-weight: bold; font-size: 1.1rem; }
+        .clickable-area { display: block; padding: 18px; color: white; text-align: center; font-weight: bold; font-size: 1.1rem; text-decoration: none; }
         
         .btn-del-item { position: absolute; top: -5px; left: -5px; background: white; color: red; border: 2px solid red; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; display: none; z-index: 100; font-weight: bold; }
         .btn-edit-item { position: absolute; top: -5px; right: -5px; background: white; color: var(--accent); border: 2px solid var(--accent); border-radius: 50%; width: 30px; height: 30px; cursor: pointer; display: none; z-index: 100; }
@@ -45,8 +43,6 @@
         
         .screen { display: none; } .active { display: block; }
         .time-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-
-        /* الزر السري المخفي */
         .secret-trigger { position: fixed; bottom: 70px; left: 50%; transform: translateX(-50%); width: 100px; height: 40px; background: transparent; border: none; z-index: 1100; }
     </style>
 </head>
@@ -67,10 +63,15 @@
         <div id="panel-main" class="admin-panel">
             <b>رابط الفيسبوك:</b>
             <input type="text" id="fb-url-input" placeholder="رابط الصفحة">
-            <button onclick="saveFb()" style="background:var(--primary); color:white; width:100%; padding:8px; margin-bottom:15px; border:none; border-radius:5px;">تحديث الرابط</button>
+            <button onclick="saveFb()" style="background:var(--primary); color:white; width:100%; padding:8px; margin-bottom:15px; border:none; border-radius:5px;">تحديث رابط الفيسبوك</button>
             <hr>
-            <b>إضافة قسم رئيسي:</b>
-            <input type="text" id="new-cat" placeholder="اسم القسم">
+            <b>إضافة قسم جديد:</b>
+            <input type="text" id="new-cat-name" placeholder="اسم القسم">
+            <select id="new-cat-type" onchange="toggleLinkField()">
+                <option value="internal">قسم داخلي (عيادات)</option>
+                <option value="external">رابط خارجي</option>
+            </select>
+            <input type="text" id="new-cat-link" placeholder="الرابط الخارجي (http://...)" style="display:none;">
             <button onclick="addCat()" style="background:var(--success); color:white; width:100%; padding:10px; border:none; border-radius:5px;">حفظ القسم</button>
         </div>
         <div class="list-menu" id="cats-list"></div>
@@ -146,15 +147,16 @@
     const dayOrder = { "السبت":1, "الأحد":2, "الاثنين":3, "الثلاثاء":4, "الأربعاء":5, "الخميس":6, "الجمعة":7 };
 
     async function load() {
-        const doc = await db.collection("app").doc("final_stable_v1").get();
+        const doc = await db.collection("app").doc("final_master_data").get();
         if(doc.exists) state = doc.data();
         document.getElementById('fb-link').href = state.fb || "#";
         renderAll();
     }
-    async function sync() { await db.collection("app").doc("final_stable_v1").set(state); renderAll(); }
+    async function sync() { await db.collection("app").doc("final_master_data").set(state); renderAll(); }
 
     function checkAuth() { if(prompt("الباسورد:") === "1987") { isAdmin = true; renderAll(); } }
     function saveFb() { state.fb = document.getElementById('fb-url-input').value; sync(); }
+    function toggleLinkField() { document.getElementById('new-cat-link').style.display = document.getElementById('new-cat-type').value === 'external' ? 'block' : 'none'; }
 
     function doSearch() {
         let q = document.getElementById('smart-search').value.toLowerCase();
@@ -163,17 +165,16 @@
         box.innerHTML = "";
         let res = [];
         state.cats.forEach((cat, ci) => {
-            cat.depts.forEach((dept, di) => {
-                if(dept.name.toLowerCase().includes(q)) res.push({t: dept.name, s: `عيادة في ${cat.name}`, a: () => { cur.cat=ci; cur.dept=di; showScreen('screen-options'); }});
-                for(let day in dept.clinics) {
-                    dept.clinics[day].forEach(c => {
-                        if(c.doc.toLowerCase().includes(q)) res.push({t: `د. ${c.doc}`, s: `موعد ${day} - عيادة ${dept.name}`, a: () => { cur.cat=ci; cur.dept=di; cur.day=day; showScreen('screen-clinics'); }});
-                    });
-                }
-                (dept.services || []).forEach(s => {
-                    if(s.name.toLowerCase().includes(q)) res.push({t: s.name, s: `خدمة في ${dept.name}`, a: () => { cur.cat=ci; cur.dept=di; showScreen('screen-services'); }});
+            if(cat.type === 'internal') {
+                cat.depts.forEach((dept, di) => {
+                    if(dept.name.toLowerCase().includes(q)) res.push({t: dept.name, s: `عيادة في ${cat.name}`, a: () => { cur.cat=ci; cur.dept=di; showScreen('screen-options'); }});
+                    for(let day in dept.clinics) {
+                        dept.clinics[day].forEach(c => {
+                            if(c.doc.toLowerCase().includes(q)) res.push({t: `د. ${c.doc}`, s: `موعد ${day} - عيادة ${dept.name}`, a: () => { cur.cat=ci; cur.dept=di; cur.day=day; showScreen('screen-clinics'); }});
+                        });
+                    }
                 });
-            });
+            }
         });
         if(res.length > 0) {
             box.style.display="block";
@@ -196,7 +197,18 @@
         renderAll();
     }
 
-    function addCat() { let n = document.getElementById('new-cat').value; if(n) { state.cats.push({ name: n, depts: [] }); sync(); document.getElementById('new-cat').value=""; } }
+    function addCat() { 
+        let n = document.getElementById('new-cat-name').value;
+        let t = document.getElementById('new-cat-type').value;
+        let l = document.getElementById('new-cat-link').value;
+        if(n) { 
+            state.cats.push({ name: n, type: t, link: l, depts: [] }); 
+            sync(); 
+            document.getElementById('new-cat-name').value=""; 
+            document.getElementById('new-cat-link').value="";
+        } 
+    }
+
     function addDept() { let n = document.getElementById('new-dept').value; if(n) { state.cats[cur.cat].depts.push({ name: n, days: [], clinics: {}, services: [] }); sync(); document.getElementById('new-dept').value=""; } }
     
     function addDay() { 
@@ -240,7 +252,14 @@
         document.getElementById('fb-link').href = state.fb || "#";
         const catsDiv = document.getElementById('cats-list'); catsDiv.innerHTML = "";
         state.cats.forEach((c, i) => {
-            catsDiv.innerHTML += `<div class="item-link" onclick="cur.cat=${i};showScreen('screen-depts')"><span class="clickable-area">${c.name}</span><button class="btn-del-item" style="display:${adminStyle}" onclick="event.stopPropagation();state.cats.splice(${i},1);sync();">X</button></div>`;
+            let html = `<div class="item-link">`;
+            if(c.type === 'external') {
+                html += `<a href="${c.link}" target="_blank" class="clickable-area">${c.name} (رابط خارجي)</a>`;
+            } else {
+                html += `<span class="clickable-area" onclick="cur.cat=${i};showScreen('screen-depts')">${c.name}</span>`;
+            }
+            html += `<button class="btn-del-item" style="display:${adminStyle}" onclick="event.stopPropagation();state.cats.splice(${i},1);sync();">X</button></div>`;
+            catsDiv.innerHTML += html;
         });
         if(cur.cat !== null) {
             const deptsDiv = document.getElementById('depts-list'); deptsDiv.innerHTML = "";

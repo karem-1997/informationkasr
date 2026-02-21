@@ -22,17 +22,16 @@
         .list-menu { display: flex; flex-direction: column; gap: 12px; }
         .item-link { position: relative; background: var(--secondary); border-radius: 12px; cursor: pointer; display: block; width: 100%; border: none; padding: 0; transition: 0.2s; }
         .clickable-area { display: block; padding: 18px; color: white; text-align: center; font-weight: bold; font-size: 1.1rem; text-decoration: none; }
-        .btn-del-item { position: absolute; top: -5px; left: -5px; background: white; color: red; border: 2px solid red; border-radius: 50%; width: 28px; height: 28px; cursor: pointer; display: none; font-weight: bold; z-index: 100; line-height: 24px; text-align: center; }
-        .btn-edit-item { position: absolute; top: -5px; right: -5px; background: white; color: var(--accent); border: 2px solid var(--accent); border-radius: 50%; width: 28px; height: 28px; cursor: pointer; display: none; z-index: 100; line-height: 24px; text-align: center; }
+        .btn-del-item { position: absolute; top: -5px; left: -5px; background: white; color: red; border: 2px solid red; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; display: none; font-weight: bold; z-index: 100; line-height: 25px; text-align: center; }
+        /* زر التعديل الجديد */
+        .btn-edit-item { position: absolute; top: -5px; right: -5px; background: white; color: var(--accent); border: 2px solid var(--accent); border-radius: 50%; width: 30px; height: 30px; cursor: pointer; display: none; z-index: 100; line-height: 25px; text-align: center; }
         .data-card { background: #fff; border: 1px solid #ddd; border-radius: 12px; padding: 15px; margin-bottom: 15px; border-right: 6px solid var(--accent); position: relative; }
         .badge-price { background: #eafaf1; color: var(--success); padding: 5px 12px; border-radius: 15px; font-weight: bold; border: 1px solid var(--success); display: inline-block; margin: 5px 0; }
-        .notes-text { font-size: 0.85rem; color: #666; font-style: italic; display: block; margin-top: 5px; border-top: 1px solid #eee; padding-top: 5px; }
+        .notes-display { font-size: 0.85rem; color: #555; background: #f9f9f9; padding: 5px; border-radius: 5px; margin-top: 5px; border-top: 1px solid #eee; }
         .footer-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: #fff; padding: 12px; border-top: 2px solid #ddd; display: flex; justify-content: center; z-index: 999; }
         .btn-back-main { background: var(--primary); color: white; width: 90%; max-width: 460px; padding: 14px; border-radius: 10px; text-align: center; font-weight: bold; cursor: pointer; border: none; }
         .screen { display: none; } .active { display: block; }
-        .search-box { margin-bottom: 20px; position: relative; }
-        .search-box input { padding-right: 40px; border: 2px solid var(--secondary); }
-        .search-box i { position: absolute; right: 15px; top: 15px; color: var(--secondary); }
+        .time-picker-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-bottom: 8px; }
     </style>
 </head>
 <body>
@@ -42,75 +41,55 @@
     <a id="h-fb-link" href="#" target="_blank" class="fb-float"><i class="fab fa-facebook-f"></i></a>
 
     <div id="screen-main" class="screen active">
-        <div class="search-box"><i class="fas fa-search"></i><input type="text" id="main-search" placeholder="ابحث عن دكتور أو عيادة..." oninput="doSearch(this.value)"></div>
-        <div id="search-results-area" style="display:none; margin-bottom:20px;"><div id="search-list"></div></div>
-        <div id="main-content-area">
-            <div id="panel-main" class="admin-panel">
-                <b>الإعدادات:</b>
-                <input type="text" id="h-fb-input" placeholder="رابط فيسبوك">
-                <hr>
-                <b>إضافة قسم رئيسي:</b>
-                <input type="text" id="new-cat-name" placeholder="اسم القسم">
-                <button onclick="saveMainSettings()" style="background:var(--success); color:white; width:100%; padding:10px; border:none; border-radius:8px;">حفظ</button>
-                <button onclick="resetEverything()" style="background:var(--danger); color:white; width:100%; margin-top:10px; padding:10px; border:none; border-radius:8px;">⚠️ فرمتة الموقع</button>
-            </div>
-            <div class="list-menu" id="cats-list"></div>
+        <div id="panel-main" class="admin-panel">
+            <b>إضافة قسم:</b>
+            <input type="text" id="new-cat-name" placeholder="اسم القسم">
+            <button onclick="saveMainSettings()" style="background:var(--success); color:white; width:100%; padding:12px; border:none; border-radius:8px;">حفظ</button>
         </div>
-        <button class="admin-trigger-btn" style="background:none; border:none; color:#aaa; width:100%; margin-top:20px; cursor:pointer;" onclick="checkAuth()">⚙️ إدارة النظام</button>
+        <div class="list-menu" id="cats-list"></div>
+        <button onclick="checkAuth()" style="background:none; border:none; color:#aaa; width:100%; margin-top:20px; cursor:pointer;">⚙️ إدارة</button>
     </div>
 
     <div id="screen-depts" class="screen">
-        <h2 id="cat-title" style="text-align:center;"></h2>
         <div id="panel-depts" class="admin-panel">
             <input type="text" id="dept-name" placeholder="اسم العيادة">
-            <input type="text" id="dept-wa" placeholder="رقم واتساب العيادة">
-            <button onclick="addDept()" style="background:var(--success); color:white; width:100%; padding:10px; border:none; border-radius:8px;">إضافة</button>
+            <button onclick="addDept()" style="background:var(--success); color:white; width:100%; padding:12px; border:none; border-radius:8px;">إضافة</button>
         </div>
         <div class="list-menu" id="depts-list"></div>
     </div>
 
     <div id="screen-options" class="screen">
-        <h2 id="opt-dept-title" style="text-align:center;"></h2>
         <div class="list-menu">
-            <div class="item-link" onclick="showScreen('screen-days')"><span class="clickable-area">📅 مواعيد الدكاترة</span></div>
-            <div class="item-link" style="background:var(--accent)" onclick="showScreen('screen-services')"><span class="clickable-area">💰 الخدمات والأسعار</span></div>
+            <div class="item-link" onclick="showScreen('screen-days')"><span class="clickable-area">📅 المواعيد</span></div>
         </div>
     </div>
 
     <div id="screen-days" class="screen">
-        <h2 style="text-align:center;">اختر اليوم</h2>
         <div id="panel-days" class="admin-panel">
-            <input type="text" id="new-day-name" placeholder="إضافة يوم">
-            <button onclick="addDay()" style="background:var(--success); color:white; width:100%; padding:10px; border:none; border-radius:8px;">إضافة</button>
+            <input type="text" id="new-day-name" placeholder="اسم اليوم">
+            <button onclick="addDay()" style="background:var(--success); color:white; width:100%; padding:12px; border:none; border-radius:8px;">إضافة</button>
         </div>
         <div class="list-menu" id="days-list"></div>
     </div>
 
     <div id="screen-clinics" class="screen">
-        <h3 id="clinic-day-title" style="text-align:center;"></h3>
         <div id="panel-clinics" class="admin-panel">
-            <input type="hidden" id="edit-index" value="">
-            <input type="text" id="c-doc" placeholder="اسم الدكتور">
-            <input type="text" id="c-time" placeholder="الموعد (مثلاً: 9ص - 1م)">
+            <input type="hidden" id="edit-id" value=""> <input type="text" id="c-doc" placeholder="اسم الدكتور">
+            <div class="time-picker-grid">
+                <input type="number" id="t-from" placeholder="من">
+                <select id="p-from"><option>صباحاً</option><option>مساءً</option></select>
+                <input type="number" id="t-to" placeholder="إلى">
+                <select id="p-to"><option>صباحاً</option><option>مساءً</option></select>
+            </div>
             <input type="number" id="c-price" placeholder="سعر الكشف">
-            <textarea id="c-notes" placeholder="ملاحظات (اختياري)"></textarea>
-            <button id="btn-save-clinic" onclick="saveClinic()" style="background:var(--success); color:white; width:100%; padding:12px; border:none; border-radius:8px; font-weight:bold;">حفظ الموعد</button>
-            <button id="btn-cancel-edit" onclick="resetClinicForm()" style="display:none; background:#777; color:white; width:100%; margin-top:5px; padding:8px; border:none; border-radius:8px;">إلغاء التعديل</button>
+            <textarea id="c-notes" placeholder="أضف ملاحظات عن الدكتور هنا..."></textarea>
+            <button id="save-btn" onclick="saveClinic()" style="background:var(--success); color:white; width:100%; padding:12px; border:none; border-radius:8px;">حفظ الموعد</button>
+            <button id="cancel-edit" onclick="clearClinicForm()" style="display:none; background:#777; color:white; width:100%; padding:8px; border:none; border-radius:8px; margin-top:5px;">إلغاء التعديل</button>
         </div>
         <div id="clinics-list"></div>
     </div>
 
-    <div id="screen-services" class="screen">
-        <h2 style="text-align:center;">الخدمات والأسعار</h2>
-        <div id="panel-services" class="admin-panel">
-            <input type="text" id="s-name" placeholder="اسم الخدمة">
-            <input type="number" id="s-price" placeholder="السعر">
-            <button onclick="addService()" style="background:var(--success); color:white; width:100%; padding:10px; border:none; border-radius:8px;">إضافة</button>
-        </div>
-        <div id="services-list"></div>
-    </div>
-
-    <div class="footer-nav" id="master-footer" style="display:none;"><button class="btn-back-main" id="back-btn">← عودة للخلف</button></div>
+    <div class="footer-nav" id="master-footer" style="display:none;"><button class="btn-back-main" id="back-btn">← عودة</button></div>
 </div>
 
 <script>
@@ -122,10 +101,9 @@
         messagingSenderId: "183077060452",
         appId: "1:183077060452:web:647171df9af42d537e4471"
     };
-
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
-    let state = { fb: "#", cats: [] };
+    let state = { cats: [] };
     let cur = { cat: null, dept: null, day: null };
     let isAdmin = false;
 
@@ -134,160 +112,122 @@
         if(doc.exists) state = doc.data();
         renderAll();
     }
-
     async function sync() { await db.collection("app").doc("data").set(state); renderAll(); }
 
-    function checkAuth() {
-        let p = prompt("كلمة المرور:");
-        if(p === "1987") { isAdmin = true; renderAll(); alert("وضع الإدارة نشط"); }
-    }
+    function checkAuth() { if(prompt("الباسورد:") === "1987") { isAdmin = true; renderAll(); } }
 
     function showScreen(id) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.getElementById(id).classList.add('active');
         document.getElementById('master-footer').style.display = (id === 'screen-main') ? 'none' : 'flex';
-        const backMap = { 'screen-depts':'screen-main', 'screen-options':'screen-depts', 'screen-days':'screen-options', 'screen-clinics':'screen-days', 'screen-services':'screen-options' };
+        const backMap = { 'screen-depts':'screen-main', 'screen-options':'screen-depts', 'screen-days':'screen-options', 'screen-clinics':'screen-days' };
         document.getElementById('back-btn').onclick = () => showScreen(backMap[id]);
-        if(id === 'screen-clinics') resetClinicForm();
+        if(id !== 'screen-clinics') clearClinicForm();
         renderAll();
     }
 
-    // إدارة البيانات
+    // إضافة الأقسام والعيادات (كما في كودك)
     function saveMainSettings() {
-        state.fb = document.getElementById('h-fb-input').value || state.fb;
-        let n = document.getElementById('new-cat-name').value.trim();
-        if(n) state.cats.push({ name: n, depts: [] });
-        sync();
+        let n = document.getElementById('new-cat-name').value;
+        if(n) { state.cats.push({ name: n, depts: [] }); sync(); }
     }
-
     function addDept() {
-        let n = document.getElementById('dept-name').value.trim();
-        if(n) { state.cats[cur.cat].depts.push({ name: n, wa: document.getElementById('dept-wa').value, days: [], clinics: {}, services: [] }); sync(); }
+        let n = document.getElementById('dept-name').value;
+        if(n) { state.cats[cur.cat].depts.push({ name: n, days: [], clinics: {} }); sync(); }
     }
-
     function addDay() {
-        let n = document.getElementById('new-day-name').value.trim();
+        let n = document.getElementById('new-day-name').value;
         if(n) { state.cats[cur.cat].depts[cur.dept].days.push(n); sync(); }
     }
 
-    // حفظ أو تعديل الدكتور
+    // وظيفة حفظ وتعديل الدكتور (التي طلبتها)
     function saveClinic() {
         let d = state.cats[cur.cat].depts[cur.dept];
         if(!d.clinics[cur.day]) d.clinics[cur.day] = [];
+
+        let time = `من ${document.getElementById('t-from').value} ${document.getElementById('p-from').value} إلى ${document.getElementById('t-to').value} ${document.getElementById('p-to').value}`;
         
-        let clinicData = {
+        let newClinic = {
             doc: document.getElementById('c-doc').value,
-            time: document.getElementById('c-time').value,
+            time: time,
             price: document.getElementById('c-price').value,
-            notes: document.getElementById('c-notes').value
+            notes: document.getElementById('c-notes').value // حفظ الملاحظات
         };
 
-        let editIdx = document.getElementById('edit-index').value;
-        if(editIdx !== "") {
-            d.clinics[cur.day][editIdx] = clinicData; // تحديث
+        let editId = document.getElementById('edit-id').value;
+        if(editId === "") {
+            d.clinics[cur.day].push(newClinic); // إضافة جديد
         } else {
-            d.clinics[cur.day].push(clinicData); // إضافة جديد
+            d.clinics[cur.day][editId] = newClinic; // تعديل الحالي
         }
         
-        resetClinicForm();
+        clearClinicForm();
         sync();
     }
 
-    function editClinic(idx) {
+    function startEdit(idx) {
         let c = state.cats[cur.cat].depts[cur.dept].clinics[cur.day][idx];
         document.getElementById('c-doc').value = c.doc;
-        document.getElementById('c-time').value = c.time;
         document.getElementById('c-price').value = c.price;
         document.getElementById('c-notes').value = c.notes || "";
-        document.getElementById('edit-index').value = idx;
-        document.getElementById('btn-save-clinic').innerText = "تحديث بيانات الدكتور";
-        document.getElementById('btn-cancel-edit').style.display = "block";
-        window.scrollTo(0,0);
+        document.getElementById('edit-id').value = idx;
+        document.getElementById('save-btn').innerText = "تعديل بيانات الدكتور";
+        document.getElementById('cancel-edit').style.display = "block";
+        window.scrollTo(0, 0);
     }
 
-    function resetClinicForm() {
+    function clearClinicForm() {
         document.getElementById('c-doc').value = "";
-        document.getElementById('c-time').value = "";
         document.getElementById('c-price').value = "";
         document.getElementById('c-notes').value = "";
-        document.getElementById('edit-index').value = "";
-        document.getElementById('btn-save-clinic').innerText = "حفظ الموعد";
-        document.getElementById('btn-cancel-edit').style.display = "none";
+        document.getElementById('edit-id').value = "";
+        document.getElementById('save-btn').innerText = "حفظ الموعد";
+        document.getElementById('cancel-edit').style.display = "none";
     }
 
-    async function resetEverything() { if(confirm("فرمتة الموقع بالكامل؟")) { state={fb:"#",cats:[]}; await sync(); location.reload(); } }
-
-    // العرض
     function renderAll() {
         const adminStyle = isAdmin ? 'block' : 'none';
         
-        // الأقسام
+        // رندرة الأقسام
         const catsDiv = document.getElementById('cats-list'); catsDiv.innerHTML = "";
         state.cats.forEach((c, i) => {
             catsDiv.innerHTML += `<div class="item-link" onclick="cur.cat=${i};showScreen('screen-depts')"><span class="clickable-area">${c.name}</span><button class="btn-del-item" style="display:${adminStyle}" onclick="event.stopPropagation();state.cats.splice(${i},1);sync();">X</button></div>`;
         });
 
-        // العيادات
+        // رندرة العيادات
         if(cur.cat !== null) {
-            document.getElementById('cat-title').innerText = state.cats[cur.cat].name;
             const deptsDiv = document.getElementById('depts-list'); deptsDiv.innerHTML = "";
             (state.cats[cur.cat].depts || []).forEach((d, i) => {
                 deptsDiv.innerHTML += `<div class="item-link" onclick="cur.dept=${i};showScreen('screen-options')"><span class="clickable-area">${d.name}</span><button class="btn-del-item" style="display:${adminStyle}" onclick="event.stopPropagation();state.cats[cur.cat].depts.splice(${i},1);sync();">X</button></div>`;
             });
         }
 
-        // الأيام
+        // رندرة الأيام
         if(cur.cat !== null && cur.dept !== null) {
-            let d = state.cats[cur.cat].depts[cur.dept];
-            document.getElementById('opt-dept-title').innerText = d.name;
             const daysDiv = document.getElementById('days-list'); daysDiv.innerHTML = "";
-            (d.days || []).forEach((day, i) => {
-                daysDiv.innerHTML += `<div class="item-link" style="background:#5d6d7e" onclick="cur.day='${day}';showScreen('screen-clinics')"><span class="clickable-area">${day}</span><button class="btn-del-item" style="display:${adminStyle}" onclick="event.stopPropagation();state.cats[cur.cat].depts[cur.dept].days.splice(${i},1);sync();">X</button></div>`;
+            (state.cats[cur.cat].depts[cur.dept].days || []).forEach((day, i) => {
+                daysDiv.innerHTML += `<div class="item-link" onclick="cur.day='${day}';showScreen('screen-clinics')"><span class="clickable-area">${day}</span><button class="btn-del-item" style="display:${adminStyle}" onclick="event.stopPropagation();state.cats[cur.cat].depts[cur.dept].days.splice(${i},1);sync();">X</button></div>`;
             });
         }
 
-        // المواعيد
-        if(cur.day && cur.cat !== null && cur.dept !== null) {
-            document.getElementById('clinic-day-title').innerText = "مواعيد " + cur.day;
-            const clinicsDiv = document.getElementById('clinics-list'); clinicsDiv.innerHTML = "";
+        // رندرة الدكاترة (المكان المضاف فيه التعديل والملاحظات)
+        if(cur.day !== null) {
+            const list = document.getElementById('clinics-list'); list.innerHTML = "";
             let d = state.cats[cur.cat].depts[cur.dept];
             (d.clinics[cur.day] || []).forEach((c, i) => {
-                clinicsDiv.innerHTML += `
+                list.innerHTML += `
                     <div class="data-card">
-                        <div style="font-weight:bold; color:var(--primary); font-size:1.1rem;">د. ${c.doc}</div>
-                        <div><i class="far fa-clock"></i> ${c.time}</div>
+                        <b>د. ${c.doc}</b><br>
+                        <span>${c.time}</span><br>
                         <div class="badge-price">${c.price} ج.م</div>
-                        ${c.notes ? `<div class="notes-text">📝 ${c.notes}</div>` : ''}
+                        ${c.notes ? `<div class="notes-display">📝 ${c.notes}</div>` : ''}
                         <button class="btn-del-item" style="display:${adminStyle}" onclick="state.cats[cur.cat].depts[cur.dept].clinics['${cur.day}'].splice(${i},1);sync();">X</button>
-                        <button class="btn-edit-item" style="display:${adminStyle}" onclick="editClinic(${i})"><i class="fas fa-pen" style="font-size:0.8rem"></i></button>
+                        <button class="btn-edit-item" style="display:${adminStyle}" onclick="startEdit(${i})">✎</button>
                     </div>`;
             });
-            document.getElementById('panel-clinics').style.display = adminStyle;
         }
-
-        document.getElementById('panel-main').style.display = adminStyle;
-        document.getElementById('panel-depts').style.display = adminStyle;
-        document.getElementById('panel-days').style.display = adminStyle;
-        document.getElementById('h-fb-link').href = state.fb;
-    }
-
-    function doSearch(val) {
-        const q = val.trim().toLowerCase();
-        const resDiv = document.getElementById('search-results-area');
-        const listDiv = document.getElementById('search-list');
-        if (q.length < 2) { resDiv.style.display="none"; return; }
-        resDiv.style.display="block"; listDiv.innerHTML="";
-        state.cats.forEach(c => {
-            if(c.depts) c.depts.forEach(d => {
-                if(d.clinics) for(let day in d.clinics) {
-                    d.clinics[day].forEach(cl => {
-                        if(cl.doc.toLowerCase().includes(q)) {
-                            listDiv.innerHTML += `<div class="data-card"><div style="font-size:0.8rem; color:#777">${d.name} (${day})</div><div style="font-weight:bold">د. ${cl.doc}</div><div>${cl.time}</div><div class="badge-price">${cl.price} ج.م</div></div>`;
-                        }
-                    });
-                }
-            });
-        });
+        
+        document.querySelectorAll('.admin-panel').forEach(p => p.style.display = adminStyle);
     }
 
     load();

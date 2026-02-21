@@ -32,21 +32,7 @@
         .btn-back-main { background: var(--primary); color: white; width: 90%; max-width: 460px; padding: 14px; border-radius: 10px; text-align: center; font-weight: bold; cursor: pointer; border: none; }
         .screen { display: none; } .active { display: block; }
         .time-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
-        
-        /* الزر السري المخفي تماماً */
-        .secret-admin-btn {
-            position: fixed;
-            bottom: 70px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 60px;
-            height: 30px;
-            background: transparent; /* شفاف */
-            border: none;
-            cursor: default;
-            z-index: 1100;
-            color: transparent; /* إخفاء أيقونة الترس */
-        }
+        .secret-admin-btn { position: fixed; bottom: 70px; left: 50%; transform: translateX(-50%); width: 80px; height: 35px; background: transparent; border: none; z-index: 1100; cursor: default; }
     </style>
 </head>
 <body>
@@ -55,7 +41,7 @@
     <header><h1>استعلامات مستشفى القصر العيني الفرنساوي</h1></header>
     <a id="h-fb-link" href="#" target="_blank" class="fb-float"><i class="fab fa-facebook-f"></i></a>
 
-    <button class="secret-admin-btn" onclick="checkAuth()"><i class="fas fa-cog"></i></button>
+    <button class="secret-admin-btn" onclick="checkAuth()"></button>
 
     <div id="screen-main" class="screen active">
         <div id="panel-main" class="admin-panel">
@@ -75,14 +61,26 @@
     </div>
 
     <div id="screen-options" class="screen">
+        <h2 id="opt-title" style="text-align:center; color:var(--primary);"></h2>
         <div class="list-menu">
             <div class="item-link" onclick="showScreen('screen-days')"><span class="clickable-area">📅 مواعيد الدكاترة</span></div>
+            <div class="item-link" style="background:var(--accent)" onclick="showScreen('screen-services')"><span class="clickable-area">💰 الخدمات والأسعار</span></div>
         </div>
+    </div>
+
+    <div id="screen-services" class="screen">
+        <div id="panel-services" class="admin-panel">
+            <b>إضافة خدمة جديدة:</b>
+            <input type="text" id="s-name" placeholder="اسم الخدمة (مثل: رنين مغناطيسي)">
+            <input type="number" id="s-price" placeholder="السعر">
+            <button onclick="addService()" style="background:var(--success); color:white; width:100%; padding:12px; border:none; border-radius:8px;">حفظ الخدمة</button>
+        </div>
+        <div id="services-list"></div>
     </div>
 
     <div id="screen-days" class="screen">
         <div id="panel-days" class="admin-panel">
-            <input type="text" id="new-day-name" placeholder="اسم اليوم">
+            <input type="text" id="new-day-name" placeholder="إضافة يوم">
             <button onclick="addDay()" style="background:var(--success); color:white; width:100%; padding:12px; border:none; border-radius:8px;">إضافة اليوم</button>
         </div>
         <div class="list-menu" id="days-list"></div>
@@ -113,7 +111,6 @@
 </div>
 
 <script>
-    // إعدادات Firebase
     const firebaseConfig = {
         apiKey: "AIzaSyDYW77Gt98QizE_x4o9qM_3PIRtZK1xRXw",
         authDomain: "informationkasr-d7f90.firebaseapp.com",
@@ -135,40 +132,44 @@
     }
     async function sync() { await db.collection("app").doc("data").set(state); renderAll(); }
 
-    // التحقق من الإدارة (الآن يتم استدعاؤه من الزر السري)
     function checkAuth() { 
-        let p = prompt("أدخل رمز الوصول الخاص بالمشرف:");
-        if(p === "1987") { 
-            isAdmin = true; 
-            renderAll(); 
-            alert("مرحباً بك.. وضع الإدارة نشط الآن.");
-        } 
+        if(prompt("الباسورد:") === "1987") { isAdmin = true; renderAll(); } 
     }
 
     function showScreen(id) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.getElementById(id).classList.add('active');
         document.getElementById('master-footer').style.display = (id === 'screen-main') ? 'none' : 'flex';
-        const backMap = { 'screen-depts':'screen-main', 'screen-options':'screen-depts', 'screen-days':'screen-options', 'screen-clinics':'screen-days' };
-        document.getElementById('back-btn').onclick = () => {
-            if(id === 'screen-clinics') clearClinicForm();
-            showScreen(backMap[id]);
-        };
+        const backMap = { 'screen-depts':'screen-main', 'screen-options':'screen-depts', 'screen-days':'screen-options', 'screen-clinics':'screen-days', 'screen-services':'screen-options' };
+        document.getElementById('back-btn').onclick = () => showScreen(backMap[id]);
         renderAll();
     }
 
-    // دوال الإضافة والحفظ
     function saveMainSettings() {
         let n = document.getElementById('new-cat-name').value;
-        if(n) { state.cats.push({ name: n, depts: [] }); sync(); document.getElementById('new-cat-name').value=""; }
+        if(n) { state.cats.push({ name: n, depts: [] }); sync(); }
     }
     function addDept() {
         let n = document.getElementById('dept-name').value;
-        if(n) { state.cats[cur.cat].depts.push({ name: n, days: [], clinics: {} }); sync(); document.getElementById('dept-name').value=""; }
+        if(n) { state.cats[cur.cat].depts.push({ name: n, days: [], clinics: {}, services: [] }); sync(); }
     }
     function addDay() {
         let n = document.getElementById('new-day-name').value;
-        if(n) { state.cats[cur.cat].depts[cur.dept].days.push(n); sync(); document.getElementById('new-day-name').value=""; }
+        if(n) { state.cats[cur.cat].depts[cur.dept].days.push(n); sync(); }
+    }
+
+    // إدارة الخدمات (التي عادت للعمل)
+    function addService() {
+        let n = document.getElementById('s-name').value;
+        let p = document.getElementById('s-price').value;
+        if(n && p) {
+            let d = state.cats[cur.cat].depts[cur.dept];
+            if(!d.services) d.services = [];
+            d.services.push({ name: n, price: p });
+            sync();
+            document.getElementById('s-name').value = "";
+            document.getElementById('s-price').value = "";
+        }
     }
 
     function saveClinic() {
@@ -198,7 +199,7 @@
         document.getElementById('edit-id').value = idx;
         document.getElementById('save-btn').innerText = "تعديل";
         document.getElementById('cancel-edit').style.display = "block";
-        window.scrollTo(0, 0);
+        window.scrollTo(0,0);
     }
 
     function clearClinicForm() {
@@ -211,7 +212,7 @@
     function renderAll() {
         const adminStyle = isAdmin ? 'block' : 'none';
         
-        // رندرة القوائم (الأقسام، العيادات، الأيام) بنفس نظامك الأصلي
+        // رندرة الأقسام والعيادات والأيام كالعادة
         const catsDiv = document.getElementById('cats-list'); catsDiv.innerHTML = "";
         state.cats.forEach((c, i) => {
             catsDiv.innerHTML += `<div class="item-link" onclick="cur.cat=${i};showScreen('screen-depts')"><span class="clickable-area">${c.name}</span><button class="btn-del-item" style="display:${adminStyle}" onclick="event.stopPropagation();state.cats.splice(${i},1);sync();">X</button></div>`;
@@ -225,33 +226,32 @@
         }
 
         if(cur.cat !== null && cur.dept !== null) {
+            let d = state.cats[cur.cat].depts[cur.dept];
+            document.getElementById('opt-title').innerText = d.name;
+            
+            // رندرة الخدمات
+            const sList = document.getElementById('services-list'); sList.innerHTML = "";
+            (d.services || []).forEach((s, i) => {
+                sList.innerHTML += `<div class="data-card"><b>${s.name}</b><br><div class="badge-price">${s.price} ج.م</div><button class="btn-del-item" style="display:${adminStyle}" onclick="state.cats[cur.cat].depts[cur.dept].services.splice(${i},1);sync();">X</button></div>`;
+            });
+
+            // رندرة الأيام
             const daysDiv = document.getElementById('days-list'); daysDiv.innerHTML = "";
-            (state.cats[cur.cat].depts[cur.dept].days || []).forEach((day, i) => {
+            (d.days || []).forEach((day, i) => {
                 daysDiv.innerHTML += `<div class="item-link" onclick="cur.day='${day}';showScreen('screen-clinics')"><span class="clickable-area">${day}</span><button class="btn-del-item" style="display:${adminStyle}" onclick="event.stopPropagation();state.cats[cur.cat].depts[cur.dept].days.splice(${i},1);sync();">X</button></div>`;
             });
         }
 
         if(cur.day !== null) {
-            const list = document.getElementById('clinics-list'); list.innerHTML = "";
+            const cList = document.getElementById('clinics-list'); cList.innerHTML = "";
             let d = state.cats[cur.cat].depts[cur.dept];
             (d.clinics[cur.day] || []).forEach((c, i) => {
-                let waLink = c.whatsapp ? `<a href="https://wa.me/${c.whatsapp}" class="whatsapp-btn"><i class="fab fa-whatsapp"></i> واتساب</a>` : '';
-                list.innerHTML += `
-                    <div class="data-card">
-                        <b>د. ${c.doc}</b><br>
-                        <span><i class="far fa-clock"></i> ${c.time}</span><br>
-                        <div class="badge-price">${c.price} ج.م</div><br>
-                        ${waLink}
-                        ${c.notes ? `<div class="notes-display">📝 ${c.notes}</div>` : ''}
-                        <button class="btn-del-item" style="display:${adminStyle}" onclick="state.cats[cur.cat].depts[cur.dept].clinics['${cur.day}'].splice(${i},1);sync();">X</button>
-                        <button class="btn-edit-item" style="display:${adminStyle}" onclick="startEdit(${i})">✎</button>
-                    </div>`;
+                cList.innerHTML += `<div class="data-card"><b>د. ${c.doc}</b><br><span>${c.time}</span><br><div class="badge-price">${c.price} ج.م</div><br>${c.whatsapp ? `<a href="https://wa.me/${c.whatsapp}" class="whatsapp-btn">واتساب</a>` : ''}${c.notes ? `<div class="notes-display">📝 ${c.notes}</div>` : ''}<button class="btn-del-item" style="display:${adminStyle}" onclick="state.cats[cur.cat].depts[cur.dept].clinics['${cur.day}'].splice(${i},1);sync();">X</button><button class="btn-edit-item" style="display:${adminStyle}" onclick="startEdit(${i})">✎</button></div>`;
             });
         }
         
         document.querySelectorAll('.admin-panel').forEach(p => p.style.display = adminStyle);
     }
-
     load();
 </script>
 </body>

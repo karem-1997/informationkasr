@@ -13,7 +13,7 @@
     <style>
         :root { --primary: #1a5276; --secondary: #2980b9; --success: #27ae60; --danger: #c0392b; --accent: #f39c12; --bg: #d5d8dc; }
         body { font-family: 'Tajawal', sans-serif; background-color: var(--bg); margin: 0; padding: 10px; padding-bottom: 110px; direction: rtl; }
-        .container { max-width: 500px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); min-height: 85vh; }
+        .container { max-width: 500px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); min-height: 85vh; position: relative; }
         header { text-align: center; margin-bottom: 20px; border-bottom: 3px solid var(--secondary); padding-bottom: 10px; }
         h1 { color: var(--primary); font-size: 1.2rem; margin: 0; }
         .fb-float { position: fixed; bottom: 85px; left: 20px; background: #1877f2; color: white; width: 55px; height: 55px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 1000; text-decoration: none; border: 2px solid #fff; }
@@ -23,15 +23,15 @@
         .item-link { position: relative; background: var(--secondary); border-radius: 12px; cursor: pointer; display: block; width: 100%; border: none; padding: 0; transition: 0.2s; }
         .clickable-area { display: block; padding: 18px; color: white; text-align: center; font-weight: bold; font-size: 1.1rem; text-decoration: none; }
         .btn-del-item { position: absolute; top: -5px; left: -5px; background: white; color: red; border: 2px solid red; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; display: none; font-weight: bold; z-index: 100; line-height: 25px; text-align: center; }
-        /* زر التعديل الجديد */
         .btn-edit-item { position: absolute; top: -5px; right: -5px; background: white; color: var(--accent); border: 2px solid var(--accent); border-radius: 50%; width: 30px; height: 30px; cursor: pointer; display: none; z-index: 100; line-height: 25px; text-align: center; }
         .data-card { background: #fff; border: 1px solid #ddd; border-radius: 12px; padding: 15px; margin-bottom: 15px; border-right: 6px solid var(--accent); position: relative; }
         .badge-price { background: #eafaf1; color: var(--success); padding: 5px 12px; border-radius: 15px; font-weight: bold; border: 1px solid var(--success); display: inline-block; margin: 5px 0; }
-        .notes-display { font-size: 0.85rem; color: #555; background: #f9f9f9; padding: 5px; border-radius: 5px; margin-top: 5px; border-top: 1px solid #eee; }
+        .notes-display { font-size: 0.85rem; color: #555; background: #f9f9f9; padding: 8px; border-radius: 5px; margin-top: 8px; border-top: 1px solid #eee; }
         .footer-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: #fff; padding: 12px; border-top: 2px solid #ddd; display: flex; justify-content: center; z-index: 999; }
         .btn-back-main { background: var(--primary); color: white; width: 90%; max-width: 460px; padding: 14px; border-radius: 10px; text-align: center; font-weight: bold; cursor: pointer; border: none; }
         .screen { display: none; } .active { display: block; }
-        .time-picker-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-bottom: 8px; }
+        .time-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+        .admin-trigger { text-align: center; margin-top: 15px; border-top: 1px solid #eee; padding-top: 10px; }
     </style>
 </head>
 <body>
@@ -42,51 +42,66 @@
 
     <div id="screen-main" class="screen active">
         <div id="panel-main" class="admin-panel">
-            <b>إضافة قسم:</b>
+            <b>إضافة قسم رئيسي:</b>
             <input type="text" id="new-cat-name" placeholder="اسم القسم">
-            <button onclick="saveMainSettings()" style="background:var(--success); color:white; width:100%; padding:12px; border:none; border-radius:8px;">حفظ</button>
+            <button onclick="saveMainSettings()" style="background:var(--success); color:white; width:100%; padding:12px; border:none; border-radius:8px;">حفظ القسم</button>
         </div>
         <div class="list-menu" id="cats-list"></div>
-        <button onclick="checkAuth()" style="background:none; border:none; color:#aaa; width:100%; margin-top:20px; cursor:pointer;">⚙️ إدارة</button>
     </div>
 
     <div id="screen-depts" class="screen">
         <div id="panel-depts" class="admin-panel">
+            <b>إضافة عيادة:</b>
             <input type="text" id="dept-name" placeholder="اسم العيادة">
-            <button onclick="addDept()" style="background:var(--success); color:white; width:100%; padding:12px; border:none; border-radius:8px;">إضافة</button>
+            <button onclick="addDept()" style="background:var(--success); color:white; width:100%; padding:12px; border:none; border-radius:8px;">إضافة العيادة</button>
         </div>
         <div class="list-menu" id="depts-list"></div>
     </div>
 
     <div id="screen-options" class="screen">
         <div class="list-menu">
-            <div class="item-link" onclick="showScreen('screen-days')"><span class="clickable-area">📅 المواعيد</span></div>
+            <div class="item-link" onclick="showScreen('screen-days')"><span class="clickable-area">📅 مواعيد الدكاترة</span></div>
         </div>
     </div>
 
     <div id="screen-days" class="screen">
         <div id="panel-days" class="admin-panel">
+            <b>إضافة يوم:</b>
             <input type="text" id="new-day-name" placeholder="اسم اليوم">
-            <button onclick="addDay()" style="background:var(--success); color:white; width:100%; padding:12px; border:none; border-radius:8px;">إضافة</button>
+            <button onclick="addDay()" style="background:var(--success); color:white; width:100%; padding:12px; border:none; border-radius:8px;">إضافة اليوم</button>
         </div>
         <div class="list-menu" id="days-list"></div>
     </div>
 
     <div id="screen-clinics" class="screen">
         <div id="panel-clinics" class="admin-panel">
-            <input type="hidden" id="edit-id" value=""> <input type="text" id="c-doc" placeholder="اسم الدكتور">
-            <div class="time-picker-grid">
-                <input type="number" id="t-from" placeholder="من">
+            <input type="hidden" id="edit-id" value="">
+            <b>بيانات الدكتور:</b>
+            <input type="text" id="c-doc" placeholder="اسم الدكتور">
+            
+            <div style="font-size: 0.9rem; margin-bottom: 5px;">من:</div>
+            <div class="time-row">
+                <input type="number" id="h-from" placeholder="الساعة">
                 <select id="p-from"><option>صباحاً</option><option>مساءً</option></select>
-                <input type="number" id="t-to" placeholder="إلى">
+            </div>
+            
+            <div style="font-size: 0.9rem; margin-bottom: 5px;">إلى:</div>
+            <div class="time-row">
+                <input type="number" id="h-to" placeholder="الساعة">
                 <select id="p-to"><option>صباحاً</option><option>مساءً</option></select>
             </div>
+
             <input type="number" id="c-price" placeholder="سعر الكشف">
-            <textarea id="c-notes" placeholder="أضف ملاحظات عن الدكتور هنا..."></textarea>
-            <button id="save-btn" onclick="saveClinic()" style="background:var(--success); color:white; width:100%; padding:12px; border:none; border-radius:8px;">حفظ الموعد</button>
+            <textarea id="c-notes" placeholder="ملاحظات (اختياري)"></textarea>
+            
+            <button id="save-btn" onclick="saveClinic()" style="background:var(--success); color:white; width:100%; padding:12px; border:none; border-radius:8px; font-weight:bold;">حفظ الموعد</button>
             <button id="cancel-edit" onclick="clearClinicForm()" style="display:none; background:#777; color:white; width:100%; padding:8px; border:none; border-radius:8px; margin-top:5px;">إلغاء التعديل</button>
         </div>
         <div id="clinics-list"></div>
+    </div>
+
+    <div class="admin-trigger">
+        <button onclick="checkAuth()" style="background:none; border:none; color:#aaa; cursor:pointer;">⚙️ إدارة النظام</button>
     </div>
 
     <div class="footer-nav" id="master-footer" style="display:none;"><button class="btn-back-main" id="back-btn">← عودة</button></div>
@@ -114,51 +129,56 @@
     }
     async function sync() { await db.collection("app").doc("data").set(state); renderAll(); }
 
-    function checkAuth() { if(prompt("الباسورد:") === "1987") { isAdmin = true; renderAll(); } }
+    function checkAuth() { if(prompt("كلمة المرور:") === "1987") { isAdmin = true; renderAll(); } }
 
     function showScreen(id) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.getElementById(id).classList.add('active');
         document.getElementById('master-footer').style.display = (id === 'screen-main') ? 'none' : 'flex';
         const backMap = { 'screen-depts':'screen-main', 'screen-options':'screen-depts', 'screen-days':'screen-options', 'screen-clinics':'screen-days' };
-        document.getElementById('back-btn').onclick = () => showScreen(backMap[id]);
-        if(id !== 'screen-clinics') clearClinicForm();
+        document.getElementById('back-btn').onclick = () => {
+            if(id === 'screen-clinics') clearClinicForm();
+            showScreen(backMap[id]);
+        };
         renderAll();
     }
 
-    // إضافة الأقسام والعيادات (كما في كودك)
     function saveMainSettings() {
         let n = document.getElementById('new-cat-name').value;
-        if(n) { state.cats.push({ name: n, depts: [] }); sync(); }
+        if(n) { state.cats.push({ name: n, depts: [] }); sync(); document.getElementById('new-cat-name').value=""; }
     }
     function addDept() {
         let n = document.getElementById('dept-name').value;
-        if(n) { state.cats[cur.cat].depts.push({ name: n, days: [], clinics: {} }); sync(); }
+        if(n) { state.cats[cur.cat].depts.push({ name: n, days: [], clinics: {} }); sync(); document.getElementById('dept-name').value=""; }
     }
     function addDay() {
         let n = document.getElementById('new-day-name').value;
-        if(n) { state.cats[cur.cat].depts[cur.dept].days.push(n); sync(); }
+        if(n) { state.cats[cur.cat].depts[cur.dept].days.push(n); sync(); document.getElementById('new-day-name').value=""; }
     }
 
-    // وظيفة حفظ وتعديل الدكتور (التي طلبتها)
     function saveClinic() {
         let d = state.cats[cur.cat].depts[cur.dept];
         if(!d.clinics[cur.day]) d.clinics[cur.day] = [];
 
-        let time = `من ${document.getElementById('t-from').value} ${document.getElementById('p-from').value} إلى ${document.getElementById('t-to').value} ${document.getElementById('p-to').value}`;
+        let hf = document.getElementById('h-from').value;
+        let pf = document.getElementById('p-from').value;
+        let ht = document.getElementById('h-to').value;
+        let pt = document.getElementById('p-to').value;
         
-        let newClinic = {
+        let fullTime = `من ${hf} ${pf} إلى ${ht} ${pt}`;
+        
+        let clinicData = {
             doc: document.getElementById('c-doc').value,
-            time: time,
+            time: fullTime,
             price: document.getElementById('c-price').value,
-            notes: document.getElementById('c-notes').value // حفظ الملاحظات
+            notes: document.getElementById('c-notes').value
         };
 
         let editId = document.getElementById('edit-id').value;
         if(editId === "") {
-            d.clinics[cur.day].push(newClinic); // إضافة جديد
+            d.clinics[cur.day].push(clinicData);
         } else {
-            d.clinics[cur.day][editId] = newClinic; // تعديل الحالي
+            d.clinics[cur.day][editId] = clinicData;
         }
         
         clearClinicForm();
@@ -178,6 +198,8 @@
 
     function clearClinicForm() {
         document.getElementById('c-doc').value = "";
+        document.getElementById('h-from').value = "";
+        document.getElementById('h-to').value = "";
         document.getElementById('c-price').value = "";
         document.getElementById('c-notes').value = "";
         document.getElementById('edit-id').value = "";
@@ -210,7 +232,7 @@
             });
         }
 
-        // رندرة الدكاترة (المكان المضاف فيه التعديل والملاحظات)
+        // رندرة الدكاترة
         if(cur.day !== null) {
             const list = document.getElementById('clinics-list'); list.innerHTML = "";
             let d = state.cats[cur.cat].depts[cur.dept];
@@ -218,7 +240,7 @@
                 list.innerHTML += `
                     <div class="data-card">
                         <b>د. ${c.doc}</b><br>
-                        <span>${c.time}</span><br>
+                        <span><i class="far fa-clock"></i> ${c.time}</span><br>
                         <div class="badge-price">${c.price} ج.م</div>
                         ${c.notes ? `<div class="notes-display">📝 ${c.notes}</div>` : ''}
                         <button class="btn-del-item" style="display:${adminStyle}" onclick="state.cats[cur.cat].depts[cur.dept].clinics['${cur.day}'].splice(${i},1);sync();">X</button>

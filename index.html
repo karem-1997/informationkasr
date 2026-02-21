@@ -52,9 +52,9 @@
 
     <div id="screen-main" class="screen active">
         <div id="panel-main" class="admin-panel">
-            <b>إعدادات عامة:</b>
             <input type="text" id="fb-url-input" placeholder="رابط الفيسبوك">
-            <button onclick="saveFb()" style="background:var(--primary); color:white; width:100%; padding:8px; margin-bottom:10px; border:none; border-radius:5px;">تحديث الفيسبوك</button>
+            <button onclick="saveFb()" style="background:var(--primary); color:white; width:100%; padding:8px; border:none; border-radius:5px; margin-bottom:10px;">تحديث الفيسبوك</button>
+            <button onclick="resetAllData()" style="background:red; color:white; width:100%; padding:8px; border:none; border-radius:5px; margin-bottom:10px;">تصفير كافة البيانات</button>
             <hr>
             <b>إضافة قسم رئيسي:</b>
             <input type="text" id="new-cat-name" placeholder="اسم القسم">
@@ -105,17 +105,9 @@
         <div id="panel-clinics" class="admin-panel">
             <input type="hidden" id="edit-id" value="">
             <input type="text" id="c-doc" placeholder="اسم الدكتور">
-            <div class="time-row">
-                <input type="number" id="h-from" placeholder="من">
-                <select id="p-from"><option>صباحاً</option><option>مساءً</option></select>
-            </div>
-            <div class="time-row">
-                <input type="number" id="h-to" placeholder="إلى">
-                <select id="p-to"><option>صباحاً</option><option>مساءً</option></select>
-            </div>
-            <input type="number" id="c-price" placeholder="سعر الكشف">
-            <input type="text" id="c-whatsapp" placeholder="واتساب">
-            <textarea id="c-notes" placeholder="ملاحظات"></textarea>
+            <div class="time-row"><input type="number" id="h-from" placeholder="من"><select id="p-from"><option>صباحاً</option><option>مساءً</option></select></div>
+            <div class="time-row"><input type="number" id="h-to" placeholder="إلى"><select id="p-to"><option>صباحاً</option><option>مساءً</option></select></div>
+            <input type="number" id="c-price" placeholder="سعر الكشف"><input type="text" id="c-whatsapp" placeholder="واتساب"><textarea id="c-notes" placeholder="ملاحظات"></textarea>
             <button id="save-btn" onclick="saveClinic()" style="background:var(--success); color:white; width:100%; padding:12px; border:none; border-radius:8px;">حفظ</button>
             <button id="cancel-edit" onclick="clearClinicForm()" style="display:none; background:#777; color:white; width:100%; padding:8px; border:none; margin-top:5px;">إلغاء</button>
         </div>
@@ -149,6 +141,7 @@
     }
     async function sync() { await db.collection("app").doc("data").set(state); }
 
+    function resetAllData() { if(confirm("سيتم حذف كافة الأقسام والعيادات نهائياً، هل أنت متأكد؟")) { state = { cats: [], fb: "#" }; sync(); } }
     function checkAuth() { if(prompt("الباسورد:") === "1987") { isAdmin = true; renderAll(); } }
     function toggleLinkField() { document.getElementById('new-cat-link').style.display = document.getElementById('new-cat-type').value === 'external' ? 'block' : 'none'; }
     function saveFb() { state.fb = document.getElementById('fb-url-input').value; sync(); }
@@ -178,9 +171,8 @@
         if(n) { 
             let d = state.cats[cur.cat].depts[cur.dept];
             if(!d.days) d.days = [];
-            if(!d.days.includes(n)) d.days.push(n);
-            d.days.sort((a,b) => (dayOrder[a]||99) - (dayOrder[b]||99));
-            sync(); document.getElementById('new-day-name').value = "";
+            if(!d.days.includes(n)) { d.days.push(n); d.days.sort((a,b) => (dayOrder[a]||99) - (dayOrder[b]||99)); sync(); }
+            document.getElementById('new-day-name').value = "";
         }
     }
     function addService() {
@@ -211,25 +203,27 @@
         let box = document.getElementById('results');
         if(!q) { box.style.display="none"; return; }
         box.innerHTML = "";
-        let res = [];
         state.cats.forEach((cat, ci) => {
             if(cat.type !== 'external' && cat.depts) {
                 cat.depts.forEach((dept, di) => {
-                    if(dept.name.toLowerCase().includes(q)) res.push({t: dept.name, s: `عيادة في ${cat.name}`, a: () => { cur.cat=ci; cur.dept=di; showScreen('screen-options'); }});
+                    if(dept.name.toLowerCase().includes(q)) {
+                        let d = document.createElement('div'); d.className="search-item"; d.innerHTML=`<b>${dept.name}</b><br><small>عيادة في ${cat.name}</small>`;
+                        d.onclick=()=>{ cur.cat=ci; cur.dept=di; showScreen('screen-options'); box.style.display="none"; }; box.appendChild(d);
+                    }
                     if(dept.clinics) {
                         for(let day in dept.clinics) {
                             dept.clinics[day].forEach(c => {
-                                if(c.doc.toLowerCase().includes(q)) res.push({t: `د. ${c.doc}`, s: `موعد ${day} - ${dept.name}`, a: () => { cur.cat=ci; cur.dept=di; cur.day=day; showScreen('screen-clinics'); }});
+                                if(c.doc.toLowerCase().includes(q)) {
+                                    let d = document.createElement('div'); d.className="search-item"; d.innerHTML=`<b>د. ${c.doc}</b><br><small>${day} - ${dept.name}</small>`;
+                                    d.onclick=()=>{ cur.cat=ci; cur.dept=di; cur.day=day; showScreen('screen-clinics'); box.style.display="none"; }; box.appendChild(d);
+                                }
                             });
                         }
                     }
                 });
             }
         });
-        if(res.length > 0) { box.style.display="block"; res.slice(0, 8).forEach(r => {
-            let d = document.createElement('div'); d.className="search-item"; d.innerHTML=`<b>${r.t}</b><br><small>${r.s}</small>`;
-            d.onclick=()=>{r.a(); box.style.display="none"; document.getElementById('smart-search').value="";}; box.appendChild(d);
-        }); } else { box.style.display="none"; }
+        box.style.display = box.innerHTML === "" ? "none" : "block";
     }
 
     function startEdit(idx) {
@@ -251,14 +245,14 @@
             let html = `<div class="item-link">`;
             if(c.type === 'external') html += `<a href="${c.link}" target="_blank" class="clickable-area">${c.name} 🔗</a>`;
             else html += `<span class="clickable-area" onclick="cur.cat=${i};showScreen('screen-depts')">${c.name}</span>`;
-            html += `<button class="btn-del-item" style="display:${adminStyle}" onclick="event.stopPropagation();if(confirm('متأكد من حذف القسم؟')){state.cats.splice(${i},1);sync();}">X</button></div>`;
+            html += `<button class="btn-del-item" style="display:${adminStyle}" onclick="event.stopPropagation();if(confirm('حذف القسم؟')){state.cats.splice(${i},1);sync();}">X</button></div>`;
             catsDiv.innerHTML += html;
         });
 
         if(cur.cat !== null && state.cats[cur.cat]) {
             const deptsDiv = document.getElementById('depts-list'); deptsDiv.innerHTML = "";
             (state.cats[cur.cat].depts || []).forEach((d, i) => {
-                deptsDiv.innerHTML += `<div class="item-link" onclick="cur.dept=${i};showScreen('screen-options')"><span class="clickable-area">${d.name}</span><button class="btn-del-item" style="display:${adminStyle}" onclick="event.stopPropagation();if(confirm('متأكد من حذف العيادة؟')){state.cats[cur.cat].depts.splice(${i},1);sync();}">X</button></div>`;
+                deptsDiv.innerHTML += `<div class="item-link" onclick="cur.dept=${i};showScreen('screen-options')"><span class="clickable-area">${d.name}</span><button class="btn-del-item" style="display:${adminStyle}" onclick="event.stopPropagation();if(confirm('حذف العيادة؟')){state.cats[cur.cat].depts.splice(${i},1);sync();}">X</button></div>`;
             });
         }
 
@@ -271,7 +265,7 @@
             });
             const daysDiv = document.getElementById('days-list'); daysDiv.innerHTML = "";
             (d.days || []).forEach((day, i) => {
-                daysDiv.innerHTML += `<div class="item-link" onclick="cur.day='${day}';showScreen('screen-clinics')"><span class="clickable-area">${day}</span><button class="btn-del-item" style="display:${adminStyle}" onclick="event.stopPropagation();if(confirm('حذف اليوم بجميع دكاترته؟')){state.cats[cur.cat].depts[cur.dept].days.splice(${i},1);if(state.cats[cur.cat].depts[cur.dept].clinics) delete state.cats[cur.cat].depts[cur.dept].clinics['${day}'];sync();}">X</button></div>`;
+                daysDiv.innerHTML += `<div class="item-link" onclick="cur.day='${day}';showScreen('screen-clinics')"><span class="clickable-area">${day}</span><button class="btn-del-item" style="display:${adminStyle}" onclick="event.stopPropagation();if(confirm('حذف اليوم؟')){state.cats[cur.cat].depts[cur.dept].days.splice(${i},1);if(d.clinics) delete d.clinics['${day}'];sync();}">X</button></div>`;
             });
         }
 

@@ -26,12 +26,27 @@
         .btn-edit-item { position: absolute; top: -5px; right: -5px; background: white; color: var(--accent); border: 2px solid var(--accent); border-radius: 50%; width: 30px; height: 30px; cursor: pointer; display: none; z-index: 100; line-height: 25px; text-align: center; }
         .data-card { background: #fff; border: 1px solid #ddd; border-radius: 12px; padding: 15px; margin-bottom: 15px; border-right: 6px solid var(--accent); position: relative; }
         .badge-price { background: #eafaf1; color: var(--success); padding: 5px 12px; border-radius: 15px; font-weight: bold; border: 1px solid var(--success); display: inline-block; margin: 5px 0; }
+        .whatsapp-btn { background: #25d366; color: white; padding: 8px 15px; border-radius: 8px; text-decoration: none; font-weight: bold; display: inline-block; margin-top: 10px; font-size: 0.9rem; }
         .notes-display { font-size: 0.85rem; color: #555; background: #f9f9f9; padding: 8px; border-radius: 5px; margin-top: 8px; border-top: 1px solid #eee; }
         .footer-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: #fff; padding: 12px; border-top: 2px solid #ddd; display: flex; justify-content: center; z-index: 999; }
         .btn-back-main { background: var(--primary); color: white; width: 90%; max-width: 460px; padding: 14px; border-radius: 10px; text-align: center; font-weight: bold; cursor: pointer; border: none; }
         .screen { display: none; } .active { display: block; }
         .time-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
-        .admin-trigger { text-align: center; margin-top: 15px; border-top: 1px solid #eee; padding-top: 10px; }
+        
+        /* الزر السري المخفي تماماً */
+        .secret-admin-btn {
+            position: fixed;
+            bottom: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 30px;
+            background: transparent; /* شفاف */
+            border: none;
+            cursor: default;
+            z-index: 1100;
+            color: transparent; /* إخفاء أيقونة الترس */
+        }
     </style>
 </head>
 <body>
@@ -39,6 +54,8 @@
 <div class="container">
     <header><h1>استعلامات مستشفى القصر العيني الفرنساوي</h1></header>
     <a id="h-fb-link" href="#" target="_blank" class="fb-float"><i class="fab fa-facebook-f"></i></a>
+
+    <button class="secret-admin-btn" onclick="checkAuth()"><i class="fas fa-cog"></i></button>
 
     <div id="screen-main" class="screen active">
         <div id="panel-main" class="admin-panel">
@@ -51,7 +68,6 @@
 
     <div id="screen-depts" class="screen">
         <div id="panel-depts" class="admin-panel">
-            <b>إضافة عيادة:</b>
             <input type="text" id="dept-name" placeholder="اسم العيادة">
             <button onclick="addDept()" style="background:var(--success); color:white; width:100%; padding:12px; border:none; border-radius:8px;">إضافة العيادة</button>
         </div>
@@ -66,7 +82,6 @@
 
     <div id="screen-days" class="screen">
         <div id="panel-days" class="admin-panel">
-            <b>إضافة يوم:</b>
             <input type="text" id="new-day-name" placeholder="اسم اليوم">
             <button onclick="addDay()" style="background:var(--success); color:white; width:100%; padding:12px; border:none; border-radius:8px;">إضافة اليوم</button>
         </div>
@@ -76,38 +91,29 @@
     <div id="screen-clinics" class="screen">
         <div id="panel-clinics" class="admin-panel">
             <input type="hidden" id="edit-id" value="">
-            <b>بيانات الدكتور:</b>
             <input type="text" id="c-doc" placeholder="اسم الدكتور">
-            
-            <div style="font-size: 0.9rem; margin-bottom: 5px;">من:</div>
             <div class="time-row">
-                <input type="number" id="h-from" placeholder="الساعة">
+                <input type="number" id="h-from" placeholder="من (ساعة)">
                 <select id="p-from"><option>صباحاً</option><option>مساءً</option></select>
             </div>
-            
-            <div style="font-size: 0.9rem; margin-bottom: 5px;">إلى:</div>
             <div class="time-row">
-                <input type="number" id="h-to" placeholder="الساعة">
+                <input type="number" id="h-to" placeholder="إلى (ساعة)">
                 <select id="p-to"><option>صباحاً</option><option>مساءً</option></select>
             </div>
-
             <input type="number" id="c-price" placeholder="سعر الكشف">
-            <textarea id="c-notes" placeholder="ملاحظات (اختياري)"></textarea>
-            
-            <button id="save-btn" onclick="saveClinic()" style="background:var(--success); color:white; width:100%; padding:12px; border:none; border-radius:8px; font-weight:bold;">حفظ الموعد</button>
-            <button id="cancel-edit" onclick="clearClinicForm()" style="display:none; background:#777; color:white; width:100%; padding:8px; border:none; border-radius:8px; margin-top:5px;">إلغاء التعديل</button>
+            <input type="text" id="c-whatsapp" placeholder="رقم الواتساب">
+            <textarea id="c-notes" placeholder="ملاحظات"></textarea>
+            <button id="save-btn" onclick="saveClinic()" style="background:var(--success); color:white; width:100%; padding:12px; border:none; border-radius:8px;">حفظ</button>
+            <button id="cancel-edit" onclick="clearClinicForm()" style="display:none; background:#777; color:white; width:100%; padding:8px; border:none; border-radius:8px; margin-top:5px;">إلغاء</button>
         </div>
         <div id="clinics-list"></div>
-    </div>
-
-    <div class="admin-trigger">
-        <button onclick="checkAuth()" style="background:none; border:none; color:#aaa; cursor:pointer;">⚙️ إدارة النظام</button>
     </div>
 
     <div class="footer-nav" id="master-footer" style="display:none;"><button class="btn-back-main" id="back-btn">← عودة</button></div>
 </div>
 
 <script>
+    // إعدادات Firebase
     const firebaseConfig = {
         apiKey: "AIzaSyDYW77Gt98QizE_x4o9qM_3PIRtZK1xRXw",
         authDomain: "informationkasr-d7f90.firebaseapp.com",
@@ -129,7 +135,15 @@
     }
     async function sync() { await db.collection("app").doc("data").set(state); renderAll(); }
 
-    function checkAuth() { if(prompt("كلمة المرور:") === "1987") { isAdmin = true; renderAll(); } }
+    // التحقق من الإدارة (الآن يتم استدعاؤه من الزر السري)
+    function checkAuth() { 
+        let p = prompt("أدخل رمز الوصول الخاص بالمشرف:");
+        if(p === "1987") { 
+            isAdmin = true; 
+            renderAll(); 
+            alert("مرحباً بك.. وضع الإدارة نشط الآن.");
+        } 
+    }
 
     function showScreen(id) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -143,6 +157,7 @@
         renderAll();
     }
 
+    // دوال الإضافة والحفظ
     function saveMainSettings() {
         let n = document.getElementById('new-cat-name').value;
         if(n) { state.cats.push({ name: n, depts: [] }); sync(); document.getElementById('new-cat-name').value=""; }
@@ -159,28 +174,17 @@
     function saveClinic() {
         let d = state.cats[cur.cat].depts[cur.dept];
         if(!d.clinics[cur.day]) d.clinics[cur.day] = [];
-
-        let hf = document.getElementById('h-from').value;
-        let pf = document.getElementById('p-from').value;
-        let ht = document.getElementById('h-to').value;
-        let pt = document.getElementById('p-to').value;
-        
-        let fullTime = `من ${hf} ${pf} إلى ${ht} ${pt}`;
-        
+        let fullTime = `من ${document.getElementById('h-from').value} ${document.getElementById('p-from').value} إلى ${document.getElementById('h-to').value} ${document.getElementById('p-to').value}`;
         let clinicData = {
             doc: document.getElementById('c-doc').value,
             time: fullTime,
             price: document.getElementById('c-price').value,
+            whatsapp: document.getElementById('c-whatsapp').value,
             notes: document.getElementById('c-notes').value
         };
-
         let editId = document.getElementById('edit-id').value;
-        if(editId === "") {
-            d.clinics[cur.day].push(clinicData);
-        } else {
-            d.clinics[cur.day][editId] = clinicData;
-        }
-        
+        if(editId === "") d.clinics[cur.day].push(clinicData);
+        else d.clinics[cur.day][editId] = clinicData;
         clearClinicForm();
         sync();
     }
@@ -189,34 +193,30 @@
         let c = state.cats[cur.cat].depts[cur.dept].clinics[cur.day][idx];
         document.getElementById('c-doc').value = c.doc;
         document.getElementById('c-price').value = c.price;
+        document.getElementById('c-whatsapp').value = c.whatsapp || "";
         document.getElementById('c-notes').value = c.notes || "";
         document.getElementById('edit-id').value = idx;
-        document.getElementById('save-btn').innerText = "تعديل بيانات الدكتور";
+        document.getElementById('save-btn').innerText = "تعديل";
         document.getElementById('cancel-edit').style.display = "block";
         window.scrollTo(0, 0);
     }
 
     function clearClinicForm() {
         document.getElementById('c-doc').value = "";
-        document.getElementById('h-from').value = "";
-        document.getElementById('h-to').value = "";
-        document.getElementById('c-price').value = "";
-        document.getElementById('c-notes').value = "";
         document.getElementById('edit-id').value = "";
-        document.getElementById('save-btn').innerText = "حفظ الموعد";
+        document.getElementById('save-btn').innerText = "حفظ";
         document.getElementById('cancel-edit').style.display = "none";
     }
 
     function renderAll() {
         const adminStyle = isAdmin ? 'block' : 'none';
         
-        // رندرة الأقسام
+        // رندرة القوائم (الأقسام، العيادات، الأيام) بنفس نظامك الأصلي
         const catsDiv = document.getElementById('cats-list'); catsDiv.innerHTML = "";
         state.cats.forEach((c, i) => {
             catsDiv.innerHTML += `<div class="item-link" onclick="cur.cat=${i};showScreen('screen-depts')"><span class="clickable-area">${c.name}</span><button class="btn-del-item" style="display:${adminStyle}" onclick="event.stopPropagation();state.cats.splice(${i},1);sync();">X</button></div>`;
         });
 
-        // رندرة العيادات
         if(cur.cat !== null) {
             const deptsDiv = document.getElementById('depts-list'); deptsDiv.innerHTML = "";
             (state.cats[cur.cat].depts || []).forEach((d, i) => {
@@ -224,7 +224,6 @@
             });
         }
 
-        // رندرة الأيام
         if(cur.cat !== null && cur.dept !== null) {
             const daysDiv = document.getElementById('days-list'); daysDiv.innerHTML = "";
             (state.cats[cur.cat].depts[cur.dept].days || []).forEach((day, i) => {
@@ -232,16 +231,17 @@
             });
         }
 
-        // رندرة الدكاترة
         if(cur.day !== null) {
             const list = document.getElementById('clinics-list'); list.innerHTML = "";
             let d = state.cats[cur.cat].depts[cur.dept];
             (d.clinics[cur.day] || []).forEach((c, i) => {
+                let waLink = c.whatsapp ? `<a href="https://wa.me/${c.whatsapp}" class="whatsapp-btn"><i class="fab fa-whatsapp"></i> واتساب</a>` : '';
                 list.innerHTML += `
                     <div class="data-card">
                         <b>د. ${c.doc}</b><br>
                         <span><i class="far fa-clock"></i> ${c.time}</span><br>
-                        <div class="badge-price">${c.price} ج.م</div>
+                        <div class="badge-price">${c.price} ج.م</div><br>
+                        ${waLink}
                         ${c.notes ? `<div class="notes-display">📝 ${c.notes}</div>` : ''}
                         <button class="btn-del-item" style="display:${adminStyle}" onclick="state.cats[cur.cat].depts[cur.dept].clinics['${cur.day}'].splice(${i},1);sync();">X</button>
                         <button class="btn-edit-item" style="display:${adminStyle}" onclick="startEdit(${i})">✎</button>

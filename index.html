@@ -105,9 +105,17 @@
         <div id="panel-clinics" class="admin-panel">
             <input type="hidden" id="edit-id" value="">
             <input type="text" id="c-doc" placeholder="اسم الدكتور">
-            <div class="time-row"><input type="number" id="h-from" placeholder="من"><select id="p-from"><option>صباحاً</option><option>مساءً</option></select></div>
-            <div class="time-row"><input type="number" id="h-to" placeholder="إلى"><select id="p-to"><option>صباحاً</option><option>مساءً</option></select></div>
-            <input type="number" id="c-price" placeholder="سعر الكشف"><input type="text" id="c-whatsapp" placeholder="واتساب"><textarea id="c-notes" placeholder="ملاحظات"></textarea>
+            <div class="time-row">
+                <input type="number" id="h-from" placeholder="من">
+                <select id="p-from"><option value="صباحاً">صباحاً</option><option value="مساءً">مساءً</option></select>
+            </div>
+            <div class="time-row">
+                <input type="number" id="h-to" placeholder="إلى">
+                <select id="p-to"><option value="صباحاً">صباحاً</option><option value="مساءً">مساءً</option></select>
+            </div>
+            <input type="number" id="c-price" placeholder="سعر الكشف">
+            <input type="text" id="c-whatsapp" placeholder="واتساب">
+            <textarea id="c-notes" placeholder="ملاحظات"></textarea>
             <button id="save-btn" onclick="saveClinic()" style="background:var(--success); color:white; width:100%; padding:12px; border:none; border-radius:8px;">حفظ</button>
             <button id="cancel-edit" onclick="clearClinicForm()" style="display:none; background:#777; color:white; width:100%; padding:8px; border:none; margin-top:5px;">إلغاء</button>
         </div>
@@ -141,7 +149,7 @@
     }
     async function sync() { await db.collection("app").doc("data").set(state); }
 
-    function resetAllData() { if(confirm("سيتم حذف كافة الأقسام والعيادات نهائياً، هل أنت متأكد؟")) { state = { cats: [], fb: "#" }; sync(); } }
+    function resetAllData() { if(confirm("سيتم حذف كل شيء نهائياً، هل أنت متأكد؟")) { state = { cats: [], fb: "#" }; sync(); } }
     function checkAuth() { if(prompt("الباسورد:") === "1987") { isAdmin = true; renderAll(); } }
     function toggleLinkField() { document.getElementById('new-cat-link').style.display = document.getElementById('new-cat-type').value === 'external' ? 'block' : 'none'; }
     function saveFb() { state.fb = document.getElementById('fb-url-input').value; sync(); }
@@ -186,15 +194,39 @@
         }
     }
 
+    // وظيفة الترتيب الذكي (صباحاً ثم مساءً)
+    function sortClinics(list) {
+        return list.sort((a, b) => {
+            const getScore = (timeStr) => {
+                let period = timeStr.includes("صباحاً") ? 0 : 1; // 0 للصباح، 1 للمساء
+                let match = timeStr.match(/من (\d+)/);
+                let hour = match ? parseInt(match[1]) : 0;
+                if (hour === 12) hour = 0; // معالجة ساعة 12
+                return (period * 100) + hour; 
+            };
+            return getScore(a.time) - getScore(b.time);
+        });
+    }
+
     function saveClinic() {
         let d = state.cats[cur.cat].depts[cur.dept];
         if(!d.clinics) d.clinics = {};
         if(!d.clinics[cur.day]) d.clinics[cur.day] = [];
-        let fullTime = `من ${document.getElementById('h-from').value} ${document.getElementById('p-from').value} إلى ${document.getElementById('h-to').value} ${document.getElementById('p-to').value}`;
+        
+        let hFrom = document.getElementById('h-from').value;
+        let pFrom = document.getElementById('p-from').value;
+        let hTo = document.getElementById('h-to').value;
+        let pTo = document.getElementById('p-to').value;
+        
+        let fullTime = `من ${hFrom} ${pFrom} إلى ${hTo} ${pTo}`;
         let data = { doc: document.getElementById('c-doc').value, time: fullTime, price: document.getElementById('c-price').value, whatsapp: document.getElementById('c-whatsapp').value, notes: document.getElementById('c-notes').value };
+        
         let eid = document.getElementById('edit-id').value;
         if(eid === "") d.clinics[cur.day].push(data); else d.clinics[cur.day][eid] = data;
-        d.clinics[cur.day].sort((a,b) => a.doc.localeCompare(b.doc, 'ar'));
+        
+        // تطبيق الترتيب (صباحاً ثم مساءً)
+        d.clinics[cur.day] = sortClinics(d.clinics[cur.day]);
+        
         clearClinicForm(); sync();
     }
 
@@ -207,15 +239,15 @@
             if(cat.type !== 'external' && cat.depts) {
                 cat.depts.forEach((dept, di) => {
                     if(dept.name.toLowerCase().includes(q)) {
-                        let d = document.createElement('div'); d.className="search-item"; d.innerHTML=`<b>${dept.name}</b><br><small>عيادة في ${cat.name}</small>`;
-                        d.onclick=()=>{ cur.cat=ci; cur.dept=di; showScreen('screen-options'); box.style.display="none"; }; box.appendChild(d);
+                        let div = document.createElement('div'); div.className="search-item"; div.innerHTML=`<b>${dept.name}</b><br><small>${cat.name}</small>`;
+                        div.onclick=()=>{ cur.cat=ci; cur.dept=di; showScreen('screen-options'); box.style.display="none"; }; box.appendChild(div);
                     }
                     if(dept.clinics) {
                         for(let day in dept.clinics) {
                             dept.clinics[day].forEach(c => {
                                 if(c.doc.toLowerCase().includes(q)) {
-                                    let d = document.createElement('div'); d.className="search-item"; d.innerHTML=`<b>د. ${c.doc}</b><br><small>${day} - ${dept.name}</small>`;
-                                    d.onclick=()=>{ cur.cat=ci; cur.dept=di; cur.day=day; showScreen('screen-clinics'); box.style.display="none"; }; box.appendChild(d);
+                                    let div = document.createElement('div'); div.className="search-item"; div.innerHTML=`<b>د. ${c.doc}</b><br><small>${day} - ${dept.name}</small>`;
+                                    div.onclick=()=>{ cur.cat=ci; cur.dept=di; cur.day=day; showScreen('screen-clinics'); box.style.display="none"; }; box.appendChild(div);
                                 }
                             });
                         }
@@ -271,7 +303,9 @@
 
         if(cur.day !== null && state.cats[cur.cat].depts[cur.dept].clinics && state.cats[cur.cat].depts[cur.dept].clinics[cur.day]) {
             const cList = document.getElementById('clinics-list'); cList.innerHTML = "";
-            state.cats[cur.cat].depts[cur.dept].clinics[cur.day].forEach((c, i) => {
+            // التأكد من الترتيب عند كل رندر
+            let sortedDocs = sortClinics(state.cats[cur.cat].depts[cur.dept].clinics[cur.day]);
+            sortedDocs.forEach((c, i) => {
                 cList.innerHTML += `<div class="data-card"><b>د. ${c.doc}</b><br><span>${c.time}</span><br><div class="badge-price">${c.price} ج.م</div><br>${c.whatsapp ? `<a href="https://wa.me/${c.whatsapp}" class="whatsapp-btn">واتساب</a>` : ''}${c.notes ? `<div style="font-size:0.85rem;background:#f9f9f9;padding:8px;margin-top:8px;border-radius:5px;">📝 ${c.notes}</div>` : ''}<button class="btn-del-item" style="display:${adminStyle}" onclick="if(confirm('حذف الدكتور؟')){state.cats[cur.cat].depts[cur.dept].clinics['${cur.day}'].splice(${i},1);sync();}">X</button><button class="btn-edit-item" style="display:${adminStyle}" onclick="startEdit(${i})">✎</button></div>`;
             });
         }

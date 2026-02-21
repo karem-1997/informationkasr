@@ -15,36 +15,39 @@
         body { font-family: 'Tajawal', sans-serif; background-color: var(--bg); margin: 0; padding: 10px; padding-bottom: 110px; direction: rtl; }
         .container { max-width: 500px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); min-height: 85vh; position: relative; }
         header { text-align: center; margin-bottom: 15px; border-bottom: 3px solid var(--secondary); padding-bottom: 10px; }
-        h1 { color: var(--primary); font-size: 1.2rem; margin: 0; }
-        
+        h1 { color: var(--primary); font-size: 1.1rem; margin: 0; }
+
         /* البحث الذكي */
         .search-container { margin-bottom: 20px; position: relative; }
         .search-input { width: 100%; padding: 15px; border: 2px solid var(--secondary); border-radius: 10px; font-size: 1rem; font-family: 'Tajawal'; box-sizing: border-box; outline: none; }
-        .search-results { position: absolute; width: 100%; background: white; z-index: 2000; border-radius: 0 0 10px 10px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); max-height: 300px; overflow-y: auto; display: none; border: 1px solid #ddd; border-top: none; }
+        .search-results { position: absolute; width: 100%; background: white; z-index: 2000; border-radius: 0 0 10px 10px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); max-height: 300px; overflow-y: auto; display: none; border: 1px solid #ddd; }
         .search-item { padding: 12px; border-bottom: 1px solid #eee; cursor: pointer; text-align: right; }
-        
+
+        /* زر الفيسبوك العائم */
+        .fb-float { position: fixed; bottom: 85px; left: 20px; background: #1877f2; color: white; width: 55px; height: 55px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 1000; text-decoration: none; border: 2px solid #fff; }
+
         .admin-panel { display: none; background: #e8f6f3; padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 2px dashed var(--success); }
         input, select, textarea { padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-family: 'Tajawal'; width: 100%; box-sizing: border-box; margin-bottom: 8px; font-size: 1rem; }
         
         .list-menu { display: flex; flex-direction: column; gap: 12px; }
         .item-link { position: relative; background: var(--secondary); border-radius: 12px; cursor: pointer; display: block; width: 100%; border: none; padding: 0; }
-        .clickable-area { display: block; padding: 18px; color: white; text-align: center; font-weight: bold; font-size: 1.1rem; text-decoration: none; }
+        .clickable-area { display: block; padding: 18px; color: white; text-align: center; font-weight: bold; font-size: 1.1rem; }
         
         .btn-del-item { position: absolute; top: -5px; left: -5px; background: white; color: red; border: 2px solid red; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; display: none; z-index: 100; font-weight: bold; }
         .btn-edit-item { position: absolute; top: -5px; right: -5px; background: white; color: var(--accent); border: 2px solid var(--accent); border-radius: 50%; width: 30px; height: 30px; cursor: pointer; display: none; z-index: 100; }
         
         .data-card { background: #fff; border: 1px solid #ddd; border-radius: 12px; padding: 15px; margin-bottom: 15px; border-right: 6px solid var(--accent); position: relative; }
         .badge-price { background: #eafaf1; color: var(--success); padding: 5px 12px; border-radius: 15px; font-weight: bold; border: 1px solid var(--success); display: inline-block; margin: 5px 0; }
-        .whatsapp-btn { background: #25d366; color: white; padding: 8px 15px; border-radius: 8px; text-decoration: none; font-weight: bold; display: inline-block; margin-top: 10px; }
+        .whatsapp-btn { background: #25d366; color: white; padding: 8px 15px; border-radius: 8px; text-decoration: none; font-weight: bold; display: inline-block; margin-top: 10px; font-size: 0.9rem; }
         
         .footer-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: #fff; padding: 12px; border-top: 2px solid #ddd; display: flex; justify-content: center; z-index: 999; }
         .btn-back-main { background: var(--primary); color: white; width: 90%; max-width: 460px; padding: 14px; border-radius: 10px; text-align: center; font-weight: bold; cursor: pointer; border: none; }
         
         .screen { display: none; } .active { display: block; }
         .time-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-        
-        /* الزر السري المخفي تماماً في منتصف الأسفل */
-        .secret-admin-trigger { position: fixed; bottom: 70px; left: 50%; transform: translateX(-50%); width: 100px; height: 40px; background: transparent; border: none; z-index: 1100; cursor: default; }
+
+        /* الزر السري المخفي */
+        .secret-trigger { position: fixed; bottom: 70px; left: 50%; transform: translateX(-50%); width: 100px; height: 40px; background: transparent; border: none; z-index: 1100; }
     </style>
 </head>
 <body>
@@ -52,24 +55,31 @@
 <div class="container">
     <header><h1>استعلامات مستشفى القصر العيني الفرنساوي</h1></header>
 
-    <button class="secret-admin-trigger" onclick="checkAuth()"></button>
+    <a id="fb-link" href="#" target="_blank" class="fb-float"><i class="fab fa-facebook-f"></i></a>
 
-    <div id="search-section" class="search-container">
-        <input type="text" class="search-input" id="smart-search" placeholder="ابحث عن دكتور، عيادة، أو خدمة..." oninput="doSmartSearch()">
-        <div id="search-results-box" class="search-results"></div>
+    <button class="secret-trigger" onclick="checkAuth()"></button>
+
+    <div id="search-box" class="search-container">
+        <input type="text" class="search-input" id="smart-search" placeholder="ابحث عن دكتور أو عيادة..." oninput="doSearch()">
+        <div id="results" class="search-results"></div>
     </div>
 
     <div id="screen-main" class="screen active">
         <div id="panel-main" class="admin-panel">
-            <input type="text" id="new-cat-name" placeholder="إضافة قسم جديد">
-            <button onclick="saveMainSettings()" style="background:var(--success); color:white; width:100%; padding:10px; border:none; border-radius:5px;">حفظ القسم</button>
+            <b>رابط فيسبوك:</b>
+            <input type="text" id="fb-url-input" placeholder="ضع رابط الصفحة هنا">
+            <button onclick="saveFb()" style="background:var(--primary); color:white; width:100%; padding:8px; margin-bottom:15px; border:none; border-radius:5px;">تحديث الرابط</button>
+            <hr>
+            <b>إضافة قسم رئيسي:</b>
+            <input type="text" id="new-cat" placeholder="اسم القسم">
+            <button onclick="addCat()" style="background:var(--success); color:white; width:100%; padding:10px; border:none; border-radius:5px;">حفظ القسم</button>
         </div>
         <div class="list-menu" id="cats-list"></div>
     </div>
 
     <div id="screen-depts" class="screen">
         <div id="panel-depts" class="admin-panel">
-            <input type="text" id="dept-name" placeholder="إضافة عيادة">
+            <input type="text" id="new-dept" placeholder="اسم العيادة">
             <button onclick="addDept()" style="background:var(--success); color:white; width:100%; padding:10px; border:none; border-radius:5px;">إضافة</button>
         </div>
         <div class="list-menu" id="depts-list"></div>
@@ -94,8 +104,8 @@
 
     <div id="screen-days" class="screen">
         <div id="panel-days" class="admin-panel">
-            <input type="text" id="new-day-name" placeholder="اسم اليوم (السبت، الأحد...)">
-            <button onclick="addDay()" style="background:var(--success); color:white; width:100%; padding:10px; border:none; border-radius:5px;">إضافة يوم</button>
+            <input type="text" id="new-day" placeholder="اليوم (السبت، الأحد...)">
+            <button onclick="addDay()" style="background:var(--success); color:white; width:100%; padding:10px; border:none; border-radius:5px;">إضافة</button>
         </div>
         <div class="list-menu" id="days-list"></div>
     </div>
@@ -107,10 +117,10 @@
             <div class="time-row"><input type="number" id="h-from" placeholder="من"><select id="p-from"><option>صباحاً</option><option>مساءً</option></select></div>
             <div class="time-row"><input type="number" id="h-to" placeholder="إلى"><select id="p-to"><option>صباحاً</option><option>مساءً</option></select></div>
             <input type="number" id="c-price" placeholder="سعر الكشف">
-            <input type="text" id="c-whatsapp" placeholder="رقم الواتساب">
+            <input type="text" id="c-wa" placeholder="رقم الواتساب">
             <textarea id="c-notes" placeholder="ملاحظات"></textarea>
-            <button id="save-btn" onclick="saveClinic()" style="background:var(--success); color:white; width:100%; padding:12px; border:none; border-radius:5px;">حفظ البيانات</button>
-            <button id="cancel-edit" onclick="clearClinicForm()" style="display:none; background:#777; color:white; width:100%; padding:8px; border:none; margin-top:5px;">إلغاء</button>
+            <button id="save-btn" onclick="saveDoc()" style="background:var(--success); color:white; width:100%; padding:12px; border:none; border-radius:5px;">حفظ</button>
+            <button id="cancel-edit" onclick="clearForm()" style="display:none; background:#777; color:white; width:100%; padding:8px; border:none; margin-top:5px;">إلغاء</button>
         </div>
         <div id="clinics-list"></div>
     </div>
@@ -119,7 +129,6 @@
 </div>
 
 <script>
-    // تم تغيير مفتاح البيانات لضمان مسح أي بيانات قديمة (Fresh Start)
     const firebaseConfig = {
         apiKey: "AIzaSyDYW77Gt98QizE_x4o9qM_3PIRtZK1xRXw",
         authDomain: "informationkasr-d7f90.firebaseapp.com",
@@ -131,26 +140,27 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
     
-    let state = { cats: [] };
+    let state = { cats: [], fb: "#" };
     let cur = { cat: null, dept: null, day: null };
     let isAdmin = false;
 
-    // خارطة الترتيب الصارمة للأيام
-    const dayWeights = { "السبت":1, "السبت ":1, "الأحد":2, "الاحد":2, "الاثنين":3, "الثلاثاء":4, "الأربعاء":5, "الاربعاء":5, "الخميس":6, "الجمعة":7, "الجمعه":7 };
+    const dayOrder = { "السبت":1, "الأحد":2, "الاثنين":3, "الثلاثاء":4, "الأربعاء":5, "الخميس":6, "الجمعة":7 };
 
     async function load() {
-        // مسار بيانات جديد تماماً لضمان التصفير
-        const doc = await db.collection("app").doc("production_v2").get();
+        const doc = await db.collection("app").doc("final_v3").get();
         if(doc.exists) state = doc.data();
+        document.getElementById('fb-link').href = state.fb || "#";
         renderAll();
     }
-    async function sync() { await db.collection("app").doc("production_v2").set(state); renderAll(); }
+    async function sync() { await db.collection("app").doc("final_v3").set(state); renderAll(); }
 
-    function checkAuth() { if(prompt("كلمة السر:") === "1987") { isAdmin = true; renderAll(); alert("تم تفعيل وضع الإدارة"); } }
+    function checkAuth() { if(prompt("الباسورد:") === "1987") { isAdmin = true; renderAll(); } }
 
-    function doSmartSearch() {
+    function saveFb() { state.fb = document.getElementById('fb-url-input').value; sync(); }
+
+    function doSearch() {
         let q = document.getElementById('smart-search').value.toLowerCase();
-        let box = document.getElementById('search-results-box');
+        let box = document.getElementById('results');
         if(!q) { box.style.display="none"; return; }
         box.innerHTML = "";
         let res = [];
@@ -159,19 +169,16 @@
                 if(dept.name.toLowerCase().includes(q)) res.push({t: dept.name, s: `عيادة في ${cat.name}`, a: () => { cur.cat=ci; cur.dept=di; showScreen('screen-options'); }});
                 for(let day in dept.clinics) {
                     dept.clinics[day].forEach(c => {
-                        if(c.doc.toLowerCase().includes(q)) res.push({t: `د. ${c.doc}`, s: `موعد ${day} - ${dept.name}`, a: () => { cur.cat=ci; cur.dept=di; cur.day=day; showScreen('screen-clinics'); }});
+                        if(c.doc.toLowerCase().includes(q)) res.push({t: `د. ${c.doc}`, s: `موعد ${day} - عيادة ${dept.name}`, a: () => { cur.cat=ci; cur.dept=di; cur.day=day; showScreen('screen-clinics'); }});
                     });
                 }
-                (dept.services || []).forEach(s => {
-                    if(s.name.toLowerCase().includes(q)) res.push({t: s.name, s: `خدمة في ${dept.name}`, a: () => { cur.cat=ci; cur.dept=di; showScreen('screen-services'); }});
-                });
             });
         });
         if(res.length > 0) {
             box.style.display="block";
             res.slice(0, 10).forEach(r => {
                 let d = document.createElement('div'); d.className="search-item";
-                d.innerHTML = `<b>${r.t}</b><small style="display:block; color:#666">${r.s}</small>`;
+                d.innerHTML = `<b>${r.t}</b><br><small>${r.s}</small>`;
                 d.onclick = () => { r.a(); box.style.display="none"; document.getElementById('smart-search').value=""; };
                 box.appendChild(d);
             });
@@ -182,63 +189,60 @@
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.getElementById(id).classList.add('active');
         document.getElementById('master-footer').style.display = (id === 'screen-main') ? 'none' : 'flex';
-        document.getElementById('search-section').style.display = (id === 'screen-main') ? 'block' : 'none';
+        document.getElementById('search-box').style.display = (id === 'screen-main') ? 'block' : 'none';
         const backMap = { 'screen-depts':'screen-main', 'screen-options':'screen-depts', 'screen-days':'screen-options', 'screen-clinics':'screen-days', 'screen-services':'screen-options' };
         document.getElementById('back-btn').onclick = () => showScreen(backMap[id]);
         renderAll();
     }
 
-    function saveMainSettings() { let n = document.getElementById('new-cat-name').value; if(n) { state.cats.push({ name: n, depts: [] }); sync(); document.getElementById('new-cat-name').value=""; } }
-    function addDept() { let n = document.getElementById('dept-name').value; if(n) { state.cats[cur.cat].depts.push({ name: n, days: [], clinics: {}, services: [] }); sync(); document.getElementById('dept-name').value=""; } }
+    function addCat() { let n = document.getElementById('new-cat').value; if(n) { state.cats.push({ name: n, depts: [] }); sync(); } }
+    function addDept() { let n = document.getElementById('new-dept').value; if(n) { state.cats[cur.cat].depts.push({ name: n, days: [], clinics: {}, services: [] }); sync(); } }
     
     function addDay() { 
-        let n = document.getElementById('new-day-name').value.trim(); 
+        let n = document.getElementById('new-day').value.trim(); 
         if(n) { 
             let d = state.cats[cur.cat].depts[cur.dept];
             if(!d.days.includes(n)) d.days.push(n);
-            // ترتيب الأيام بناءً على الوزن
-            d.days.sort((a, b) => (dayWeights[a] || 99) - (dayWeights[b] || 99));
-            sync(); document.getElementById('new-day-name').value="";
+            d.days.sort((a,b) => (dayOrder[a]||99) - (dayOrder[b]||99));
+            sync(); 
         } 
     }
 
-    function addService() { 
+    function addService() {
         let n = document.getElementById('s-name').value, p = document.getElementById('s-price').value;
-        if(n && p) { let d = state.cats[cur.cat].depts[cur.dept]; if(!d.services) d.services = []; d.services.push({ name: n, price: p }); sync(); document.getElementById('s-name').value=""; document.getElementById('s-price').value=""; }
+        if(n && p) { state.cats[cur.cat].depts[cur.dept].services.push({name:n, price:p}); sync(); }
     }
 
-    function saveClinic() {
+    function saveDoc() {
         let d = state.cats[cur.cat].depts[cur.dept];
         if(!d.clinics[cur.day]) d.clinics[cur.day] = [];
         let time = `من ${document.getElementById('h-from').value} ${document.getElementById('p-from').value} إلى ${document.getElementById('h-to').value} ${document.getElementById('p-to').value}`;
-        let data = { doc: document.getElementById('c-doc').value, time: time, price: document.getElementById('c-price').value, whatsapp: document.getElementById('c-whatsapp').value, notes: document.getElementById('c-notes').value };
+        let data = { doc: document.getElementById('c-doc').value, time: time, price: document.getElementById('c-price').value, whatsapp: document.getElementById('c-wa').value, notes: document.getElementById('c-notes').value };
         let eid = document.getElementById('edit-id').value;
         if(eid === "") d.clinics[cur.day].push(data); else d.clinics[cur.day][eid] = data;
-        // الترتيب الأبجدي للدكاترة
-        d.clinics[cur.day].sort((a, b) => a.doc.localeCompare(b.doc, 'ar'));
-        clearClinicForm(); sync();
+        d.clinics[cur.day].sort((a,b) => a.doc.localeCompare(b.doc, 'ar'));
+        clearForm(); sync();
     }
 
     function startEdit(idx) {
         let c = state.cats[cur.cat].depts[cur.dept].clinics[cur.day][idx];
         document.getElementById('c-doc').value = c.doc; document.getElementById('c-price').value = c.price;
-        document.getElementById('c-whatsapp').value = c.whatsapp || ""; document.getElementById('c-notes').value = c.notes || "";
+        document.getElementById('c-wa').value = c.whatsapp || ""; document.getElementById('c-notes').value = c.notes || "";
         document.getElementById('edit-id').value = idx; document.getElementById('save-btn').innerText = "تعديل";
         document.getElementById('cancel-edit').style.display = "block"; window.scrollTo(0,0);
     }
 
-    function clearClinicForm() { document.getElementById('c-doc').value=""; document.getElementById('edit-id').value=""; document.getElementById('save-btn').innerText="حفظ البيانات"; document.getElementById('cancel-edit').style.display="none"; }
+    function clearForm() { document.getElementById('c-doc').value=""; document.getElementById('edit-id').value=""; document.getElementById('save-btn').innerText="حفظ"; document.getElementById('cancel-edit').style.display="none"; }
 
     function renderAll() {
         const adminStyle = isAdmin ? 'block' : 'none';
+        document.getElementById('fb-link').href = state.fb || "#";
         
-        // الأقسام
         const catsDiv = document.getElementById('cats-list'); catsDiv.innerHTML = "";
         state.cats.forEach((c, i) => {
             catsDiv.innerHTML += `<div class="item-link" onclick="cur.cat=${i};showScreen('screen-depts')"><span class="clickable-area">${c.name}</span><button class="btn-del-item" style="display:${adminStyle}" onclick="event.stopPropagation();state.cats.splice(${i},1);sync();">X</button></div>`;
         });
 
-        // العيادات
         if(cur.cat !== null) {
             const deptsDiv = document.getElementById('depts-list'); deptsDiv.innerHTML = "";
             (state.cats[cur.cat].depts || []).forEach((d, i) => {
@@ -246,7 +250,6 @@
             });
         }
 
-        // الأيام والخدمات
         if(cur.cat !== null && cur.dept !== null) {
             let d = state.cats[cur.cat].depts[cur.dept];
             document.getElementById('opt-title').innerText = d.name;
@@ -260,7 +263,6 @@
             });
         }
 
-        // الدكاترة
         if(cur.day !== null) {
             const cList = document.getElementById('clinics-list'); cList.innerHTML = "";
             let d = state.cats[cur.cat].depts[cur.dept];
@@ -269,8 +271,8 @@
                     <b>د. ${c.doc}</b><br>
                     <span><i class="far fa-clock"></i> ${c.time}</span><br>
                     <div class="badge-price">${c.price} ج.م</div><br>
-                    ${c.whatsapp ? `<a href="https://wa.me/${c.whatsapp}" class="whatsapp-btn">واتساب</a>` : ''}
-                    ${c.notes ? `<div style="font-size:0.8rem; margin-top:5px; color:#555;">📝 ${c.notes}</div>` : ''}
+                    ${c.whatsapp ? `<a href="https://wa.me/${c.whatsapp}" class="whatsapp-btn"><i class="fab fa-whatsapp"></i> واتساب</a>` : ''}
+                    ${c.notes ? `<div style="font-size:0.85rem; background:#f0f0f0; padding:5px; margin-top:5px; border-radius:5px;">📝 ${c.notes}</div>` : ''}
                     <button class="btn-del-item" style="display:${adminStyle}" onclick="state.cats[cur.cat].depts[cur.dept].clinics['${cur.day}'].splice(${i},1);sync();">X</button>
                     <button class="btn-edit-item" style="display:${adminStyle}" onclick="startEdit(${i})">✎</button>
                 </div>`;

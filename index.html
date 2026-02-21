@@ -19,27 +19,33 @@
         
         /* البحث */
         .search-container { margin-bottom: 15px; position: relative; }
-        .search-input { width: 100%; padding: 12px; border: 2px solid var(--secondary); border-radius: 10px; font-family: 'Tajawal'; outline: none; }
+        .search-input { width: 100%; padding: 12px; border: 2px solid var(--secondary); border-radius: 10px; font-family: 'Tajawal'; outline: none; box-sizing: border-box; }
         .search-results { position: absolute; width: 100%; background: white; z-index: 2000; border-radius: 0 0 10px 10px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); max-height: 250px; overflow-y: auto; display: none; border: 1px solid #ddd; }
         .search-item { padding: 10px; border-bottom: 1px solid #eee; cursor: pointer; text-align: right; }
 
         .fb-float { position: fixed; bottom: 85px; left: 20px; background: #1877f2; color: white; width: 55px; height: 55px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 1000; text-decoration: none; border: 2px solid #fff; }
+        
         .admin-panel { display: none; background: #e8f6f3; padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 2px dashed var(--success); }
         input, select, textarea { padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-family: 'Tajawal'; width: 100%; box-sizing: border-box; margin-bottom: 8px; font-size: 1rem; }
+        
         .list-menu { display: flex; flex-direction: column; gap: 12px; }
-        .item-link { position: relative; background: var(--secondary); border-radius: 12px; cursor: pointer; display: block; width: 100%; border: none; padding: 0; transition: 0.2s; }
+        .item-link { position: relative; background: var(--secondary); border-radius: 12px; cursor: pointer; display: block; width: 100%; border: none; padding: 0; }
         .clickable-area { display: block; padding: 18px; color: white; text-align: center; font-weight: bold; font-size: 1.1rem; text-decoration: none; }
+        
         .btn-del-item { position: absolute; top: -5px; left: -5px; background: white; color: red; border: 2px solid red; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; display: none; font-weight: bold; z-index: 100; line-height: 25px; text-align: center; }
         .btn-edit-item { position: absolute; top: -5px; right: -5px; background: white; color: var(--accent); border: 2px solid var(--accent); border-radius: 50%; width: 30px; height: 30px; cursor: pointer; display: none; z-index: 100; line-height: 25px; text-align: center; }
+        
         .data-card { background: #fff; border: 1px solid #ddd; border-radius: 12px; padding: 15px; margin-bottom: 15px; border-right: 6px solid var(--accent); position: relative; }
         .badge-price { background: #eafaf1; color: var(--success); padding: 5px 12px; border-radius: 15px; font-weight: bold; border: 1px solid var(--success); display: inline-block; margin: 5px 0; }
         .whatsapp-btn { background: #25d366; color: white; padding: 8px 15px; border-radius: 8px; text-decoration: none; font-weight: bold; display: inline-block; margin-top: 10px; font-size: 0.9rem; }
         .notes-display { font-size: 0.85rem; color: #555; background: #f9f9f9; padding: 8px; border-radius: 5px; margin-top: 8px; border-top: 1px solid #eee; }
+        
         .footer-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: #fff; padding: 12px; border-top: 2px solid #ddd; display: flex; justify-content: center; z-index: 999; }
         .btn-back-main { background: var(--primary); color: white; width: 90%; max-width: 460px; padding: 14px; border-radius: 10px; text-align: center; font-weight: bold; cursor: pointer; border: none; }
+        
         .screen { display: none; } .active { display: block; }
         .time-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
-        .secret-admin-btn { position: fixed; bottom: 70px; left: 50%; transform: translateX(-50%); width: 80px; height: 35px; background: transparent; border: none; z-index: 1100; cursor: default; }
+        .secret-admin-btn { position: fixed; bottom: 70px; left: 50%; transform: translateX(-50%); width: 100px; height: 40px; background: transparent; border: none; z-index: 1100; }
     </style>
 </head>
 <body>
@@ -57,18 +63,18 @@
 
     <div id="screen-main" class="screen active">
         <div id="panel-main" class="admin-panel">
-            <b>رابط الفيسبوك:</b>
-            <input type="text" id="fb-url-input" placeholder="رابط الصفحة">
+            <b>إعدادات عامة:</b>
+            <input type="text" id="fb-url-input" placeholder="رابط الفيسبوك">
             <button onclick="saveFb()" style="background:var(--primary); color:white; width:100%; padding:8px; margin-bottom:15px; border:none; border-radius:5px;">تحديث الفيسبوك</button>
             <hr>
             <b>إضافة قسم رئيسي:</b>
             <input type="text" id="new-cat-name" placeholder="اسم القسم">
             <select id="new-cat-type" onchange="toggleLinkField()">
-                <option value="internal">قسم داخلي</option>
-                <option value="external">رابط خارجي</option>
+                <option value="internal">قسم عيادات داخلية</option>
+                <option value="external">رابط خارجي (موقع آخر)</option>
             </select>
-            <input type="text" id="new-cat-link" placeholder="الرابط الخارجي (http://...)" style="display:none;">
-            <button onclick="saveMainSettings()" style="background:var(--success); color:white; width:100%; padding:12px; border:none; border-radius:8px;">حفظ القسم</button>
+            <input type="text" id="new-cat-link" placeholder="أدخل الرابط هنا" style="display:none;">
+            <button onclick="addCat()" style="background:var(--success); color:white; width:100%; padding:12px; border:none; border-radius:8px;">حفظ القسم</button>
         </div>
         <div class="list-menu" id="cats-list"></div>
     </div>
@@ -112,18 +118,16 @@
             <input type="hidden" id="edit-id" value="">
             <input type="text" id="c-doc" placeholder="اسم الدكتور">
             <div class="time-row">
-                <input type="number" id="h-from" placeholder="من (ساعة)">
-                <select id="p-from"><option>صباحاً</option><option>مساءً</option></select>
+                <input type="number" id="h-from" placeholder="من"><select id="p-from"><option>صباحاً</option><option>مساءً</option></select>
             </div>
             <div class="time-row">
-                <input type="number" id="h-to" placeholder="إلى (ساعة)">
-                <select id="p-to"><option>صباحاً</option><option>مساءً</option></select>
+                <input type="number" id="h-to" placeholder="إلى"><select id="p-to"><option>صباحاً</option><option>مساءً</option></select>
             </div>
             <input type="number" id="c-price" placeholder="سعر الكشف">
             <input type="text" id="c-whatsapp" placeholder="رقم الواتساب">
             <textarea id="c-notes" placeholder="ملاحظات"></textarea>
             <button id="save-btn" onclick="saveClinic()" style="background:var(--success); color:white; width:100%; padding:12px; border:none; border-radius:8px;">حفظ</button>
-            <button id="cancel-edit" onclick="clearClinicForm()" style="display:none; background:#777; color:white; width:100%; padding:8px; border:none; border-radius:8px; margin-top:5px;">إلغاء</button>
+            <button id="cancel-edit" onclick="clearClinicForm()" style="display:none; background:#777; color:white; width:100%; padding:8px; border:none; margin-top:5px;">إلغاء</button>
         </div>
         <div id="clinics-list"></div>
     </div>
@@ -155,13 +159,8 @@
     }
     async function sync() { await db.collection("app").doc("data").set(state); }
 
-    function checkAuth() { 
-        if(prompt("الباسورد:") === "1987") { isAdmin = true; renderAll(); } 
-    }
-
-    function toggleLinkField() { 
-        document.getElementById('new-cat-link').style.display = document.getElementById('new-cat-type').value === 'external' ? 'block' : 'none'; 
-    }
+    function checkAuth() { if(prompt("الباسورد:") === "1987") { isAdmin = true; renderAll(); } }
+    function toggleLinkField() { document.getElementById('new-cat-link').style.display = document.getElementById('new-cat-type').value === 'external' ? 'block' : 'none'; }
     function saveFb() { state.fb = document.getElementById('fb-url-input').value; sync(); }
 
     function showScreen(id) {
@@ -174,15 +173,11 @@
         renderAll();
     }
 
-    function saveMainSettings() {
+    function addCat() {
         let n = document.getElementById('new-cat-name').value;
         let t = document.getElementById('new-cat-type').value;
         let l = document.getElementById('new-cat-link').value;
-        if(n) { 
-            state.cats.push({ name: n, type: t, link: l || "", depts: [] }); 
-            sync(); 
-            document.getElementById('new-cat-name').value = "";
-        }
+        if(n) { state.cats.push({ name: n, type: t, link: l || "", depts: [] }); sync(); document.getElementById('new-cat-name').value = ""; }
     }
     function addDept() {
         let n = document.getElementById('dept-name').value;
@@ -192,13 +187,12 @@
         let n = document.getElementById('new-day-name').value.trim();
         if(n) { 
             let d = state.cats[cur.cat].depts[cur.dept];
-            if(!d.days.includes(n)) d.days.push(n); 
+            if(!d.days) d.days = [];
+            if(!d.days.includes(n)) d.days.push(n);
             d.days.sort((a,b) => (dayOrder[a]||99) - (dayOrder[b]||99));
-            sync(); 
-            document.getElementById('new-day-name').value = "";
+            sync(); document.getElementById('new-day-name').value = "";
         }
     }
-
     function addService() {
         let n = document.getElementById('s-name').value;
         let p = document.getElementById('s-price').value;
@@ -206,28 +200,20 @@
             let d = state.cats[cur.cat].depts[cur.dept];
             if(!d.services) d.services = [];
             d.services.push({ name: n, price: p });
-            sync();
-            document.getElementById('s-name').value = ""; document.getElementById('s-price').value = "";
+            sync(); document.getElementById('s-name').value = ""; document.getElementById('s-price').value = "";
         }
     }
 
     function saveClinic() {
         let d = state.cats[cur.cat].depts[cur.dept];
+        if(!d.clinics) d.clinics = {};
         if(!d.clinics[cur.day]) d.clinics[cur.day] = [];
         let fullTime = `من ${document.getElementById('h-from').value} ${document.getElementById('p-from').value} إلى ${document.getElementById('h-to').value} ${document.getElementById('p-to').value}`;
-        let clinicData = {
-            doc: document.getElementById('c-doc').value,
-            time: fullTime,
-            price: document.getElementById('c-price').value,
-            whatsapp: document.getElementById('c-whatsapp').value,
-            notes: document.getElementById('c-notes').value
-        };
-        let editId = document.getElementById('edit-id').value;
-        if(editId === "") d.clinics[cur.day].push(clinicData);
-        else d.clinics[cur.day][editId] = clinicData;
+        let data = { doc: document.getElementById('c-doc').value, time: fullTime, price: document.getElementById('c-price').value, whatsapp: document.getElementById('c-whatsapp').value, notes: document.getElementById('c-notes').value };
+        let eid = document.getElementById('edit-id').value;
+        if(eid === "") d.clinics[cur.day].push(data); else d.clinics[cur.day][eid] = data;
         d.clinics[cur.day].sort((a,b) => a.doc.localeCompare(b.doc, 'ar'));
-        clearClinicForm();
-        sync();
+        clearClinicForm(); sync();
     }
 
     function doSearch() {
@@ -258,19 +244,13 @@
 
     function startEdit(idx) {
         let c = state.cats[cur.cat].depts[cur.dept].clinics[cur.day][idx];
-        document.getElementById('c-doc').value = c.doc;
-        document.getElementById('c-price').value = c.price;
-        document.getElementById('c-whatsapp').value = c.whatsapp || "";
-        document.getElementById('c-notes').value = c.notes || "";
-        document.getElementById('edit-id').value = idx;
-        document.getElementById('save-btn').innerText = "تعديل";
+        document.getElementById('c-doc').value = c.doc; document.getElementById('c-price').value = c.price;
+        document.getElementById('c-whatsapp').value = c.whatsapp || ""; document.getElementById('c-notes').value = c.notes || "";
+        document.getElementById('edit-id').value = idx; document.getElementById('save-btn').innerText = "تعديل";
         document.getElementById('cancel-edit').style.display = "block";
     }
 
-    function clearClinicForm() {
-        document.getElementById('c-doc').value = ""; document.getElementById('edit-id').value = "";
-        document.getElementById('save-btn').innerText = "حفظ"; document.getElementById('cancel-edit').style.display = "none";
-    }
+    function clearClinicForm() { document.getElementById('c-doc').value = ""; document.getElementById('edit-id').value = ""; document.getElementById('save-btn').innerText = "حفظ"; document.getElementById('cancel-edit').style.display = "none"; }
 
     function renderAll() {
         const adminStyle = isAdmin ? 'block' : 'none';
@@ -305,7 +285,7 @@
             });
         }
 
-        if(cur.day !== null && state.cats[cur.cat].depts[cur.dept].clinics[cur.day]) {
+        if(cur.day !== null && state.cats[cur.cat].depts[cur.dept].clinics && state.cats[cur.cat].depts[cur.dept].clinics[cur.day]) {
             const cList = document.getElementById('clinics-list'); cList.innerHTML = "";
             state.cats[cur.cat].depts[cur.dept].clinics[cur.day].forEach((c, i) => {
                 cList.innerHTML += `<div class="data-card"><b>د. ${c.doc}</b><br><span>${c.time}</span><br><div class="badge-price">${c.price} ج.م</div><br>${c.whatsapp ? `<a href="https://wa.me/${c.whatsapp}" class="whatsapp-btn">واتساب</a>` : ''}${c.notes ? `<div class="notes-display">📝 ${c.notes}</div>` : ''}<button class="btn-del-item" style="display:${adminStyle}" onclick="state.cats[cur.cat].depts[cur.dept].clinics['${cur.day}'].splice(${i},1);sync();">X</button><button class="btn-edit-item" style="display:${adminStyle}" onclick="startEdit(${i})">✎</button></div>`;

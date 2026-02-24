@@ -54,7 +54,6 @@
         <div id="panel-main" class="admin-panel">
             <input type="text" id="fb-url-input" placeholder="رابط الفيسبوك">
             <button onclick="saveFb()" style="background:var(--primary); color:white; width:100%; padding:8px; border:none; border-radius:5px; margin-bottom:10px;">تحديث الفيسبوك</button>
-            <button onclick="resetAllData()" style="background:red; color:white; width:100%; padding:8px; border:none; border-radius:5px; margin-bottom:10px;">تصفير كافة البيانات</button>
             <hr>
             <b>إضافة قسم رئيسي:</b>
             <input type="text" id="new-cat-name" placeholder="اسم القسم">
@@ -149,7 +148,6 @@
     }
     async function sync() { await db.collection("app").doc("data").set(state); }
 
-    function resetAllData() { if(confirm("سيتم حذف كل شيء نهائياً، هل أنت متأكد؟")) { state = { cats: [], fb: "#" }; sync(); } }
     function checkAuth() { if(prompt("الباسورد:") === "1987") { isAdmin = true; renderAll(); } }
     function toggleLinkField() { document.getElementById('new-cat-link').style.display = document.getElementById('new-cat-type').value === 'external' ? 'block' : 'none'; }
     function saveFb() { state.fb = document.getElementById('fb-url-input').value; sync(); }
@@ -251,15 +249,12 @@
         box.style.display = box.innerHTML === "" ? "none" : "block";
     }
 
-    // التعديل المطلوب هنا: استخراج كافة البيانات القديمة ووضعها في الخانات
     function startEdit(idx) {
         let c = state.cats[cur.cat].depts[cur.dept].clinics[cur.day][idx];
         document.getElementById('c-doc').value = c.doc;
         document.getElementById('c-price').value = c.price;
         document.getElementById('c-whatsapp').value = c.whatsapp || "";
         document.getElementById('c-notes').value = c.notes || "";
-        
-        // فك تشفير الوقت (مثال: من 10 صباحاً إلى 2 مساءً)
         let timeRegex = /من (\d+) (صباحاً|مساءً) إلى (\d+) (صباحاً|مساءً)/;
         let match = c.time.match(timeRegex);
         if(match) {
@@ -268,22 +263,15 @@
             document.getElementById('h-to').value = match[3];
             document.getElementById('p-to').value = match[4];
         }
-
         document.getElementById('edit-id').value = idx;
         document.getElementById('save-btn').innerText = "تعديل";
         document.getElementById('cancel-edit').style.display = "block";
     }
 
     function clearClinicForm() { 
-        document.getElementById('c-doc').value = ""; 
-        document.getElementById('h-from').value = "";
-        document.getElementById('h-to').value = "";
-        document.getElementById('c-price').value = "";
-        document.getElementById('c-whatsapp').value = "";
-        document.getElementById('c-notes').value = "";
-        document.getElementById('edit-id').value = ""; 
-        document.getElementById('save-btn').innerText = "حفظ"; 
-        document.getElementById('cancel-edit').style.display = "none"; 
+        document.getElementById('c-doc').value = ""; document.getElementById('h-from').value = ""; document.getElementById('h-to').value = "";
+        document.getElementById('c-price').value = ""; document.getElementById('c-whatsapp').value = ""; document.getElementById('c-notes').value = "";
+        document.getElementById('edit-id').value = ""; document.getElementById('save-btn').innerText = "حفظ"; document.getElementById('cancel-edit').style.display = "none"; 
     }
 
     function renderAll() {

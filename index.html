@@ -194,14 +194,13 @@
         }
     }
 
-    // وظيفة الترتيب الذكي (صباحاً ثم مساءً)
     function sortClinics(list) {
         return list.sort((a, b) => {
             const getScore = (timeStr) => {
-                let period = timeStr.includes("صباحاً") ? 0 : 1; // 0 للصباح، 1 للمساء
+                let period = timeStr.includes("صباحاً") ? 0 : 1;
                 let match = timeStr.match(/من (\d+)/);
                 let hour = match ? parseInt(match[1]) : 0;
-                if (hour === 12) hour = 0; // معالجة ساعة 12
+                if (hour === 12) hour = 0;
                 return (period * 100) + hour; 
             };
             return getScore(a.time) - getScore(b.time);
@@ -212,21 +211,15 @@
         let d = state.cats[cur.cat].depts[cur.dept];
         if(!d.clinics) d.clinics = {};
         if(!d.clinics[cur.day]) d.clinics[cur.day] = [];
-        
         let hFrom = document.getElementById('h-from').value;
         let pFrom = document.getElementById('p-from').value;
         let hTo = document.getElementById('h-to').value;
         let pTo = document.getElementById('p-to').value;
-        
         let fullTime = `من ${hFrom} ${pFrom} إلى ${hTo} ${pTo}`;
         let data = { doc: document.getElementById('c-doc').value, time: fullTime, price: document.getElementById('c-price').value, whatsapp: document.getElementById('c-whatsapp').value, notes: document.getElementById('c-notes').value };
-        
         let eid = document.getElementById('edit-id').value;
         if(eid === "") d.clinics[cur.day].push(data); else d.clinics[cur.day][eid] = data;
-        
-        // تطبيق الترتيب (صباحاً ثم مساءً)
         d.clinics[cur.day] = sortClinics(d.clinics[cur.day]);
-        
         clearClinicForm(); sync();
     }
 
@@ -258,20 +251,44 @@
         box.style.display = box.innerHTML === "" ? "none" : "block";
     }
 
+    // التعديل المطلوب هنا: استخراج كافة البيانات القديمة ووضعها في الخانات
     function startEdit(idx) {
         let c = state.cats[cur.cat].depts[cur.dept].clinics[cur.day][idx];
-        document.getElementById('c-doc').value = c.doc; document.getElementById('c-price').value = c.price;
-        document.getElementById('c-whatsapp').value = c.whatsapp || ""; document.getElementById('c-notes').value = c.notes || "";
-        document.getElementById('edit-id').value = idx; document.getElementById('save-btn').innerText = "تعديل";
+        document.getElementById('c-doc').value = c.doc;
+        document.getElementById('c-price').value = c.price;
+        document.getElementById('c-whatsapp').value = c.whatsapp || "";
+        document.getElementById('c-notes').value = c.notes || "";
+        
+        // فك تشفير الوقت (مثال: من 10 صباحاً إلى 2 مساءً)
+        let timeRegex = /من (\d+) (صباحاً|مساءً) إلى (\d+) (صباحاً|مساءً)/;
+        let match = c.time.match(timeRegex);
+        if(match) {
+            document.getElementById('h-from').value = match[1];
+            document.getElementById('p-from').value = match[2];
+            document.getElementById('h-to').value = match[3];
+            document.getElementById('p-to').value = match[4];
+        }
+
+        document.getElementById('edit-id').value = idx;
+        document.getElementById('save-btn').innerText = "تعديل";
         document.getElementById('cancel-edit').style.display = "block";
     }
 
-    function clearClinicForm() { document.getElementById('c-doc').value = ""; document.getElementById('edit-id').value = ""; document.getElementById('save-btn').innerText = "حفظ"; document.getElementById('cancel-edit').style.display = "none"; }
+    function clearClinicForm() { 
+        document.getElementById('c-doc').value = ""; 
+        document.getElementById('h-from').value = "";
+        document.getElementById('h-to').value = "";
+        document.getElementById('c-price').value = "";
+        document.getElementById('c-whatsapp').value = "";
+        document.getElementById('c-notes').value = "";
+        document.getElementById('edit-id').value = ""; 
+        document.getElementById('save-btn').innerText = "حفظ"; 
+        document.getElementById('cancel-edit').style.display = "none"; 
+    }
 
     function renderAll() {
         const adminStyle = isAdmin ? 'block' : 'none';
         document.getElementById('h-fb-link').href = state.fb || "#";
-        
         const catsDiv = document.getElementById('cats-list'); catsDiv.innerHTML = "";
         state.cats.forEach((c, i) => {
             let html = `<div class="item-link">`;
@@ -280,14 +297,12 @@
             html += `<button class="btn-del-item" style="display:${adminStyle}" onclick="event.stopPropagation();if(confirm('حذف القسم؟')){state.cats.splice(${i},1);sync();}">X</button></div>`;
             catsDiv.innerHTML += html;
         });
-
         if(cur.cat !== null && state.cats[cur.cat]) {
             const deptsDiv = document.getElementById('depts-list'); deptsDiv.innerHTML = "";
             (state.cats[cur.cat].depts || []).forEach((d, i) => {
                 deptsDiv.innerHTML += `<div class="item-link" onclick="cur.dept=${i};showScreen('screen-options')"><span class="clickable-area">${d.name}</span><button class="btn-del-item" style="display:${adminStyle}" onclick="event.stopPropagation();if(confirm('حذف العيادة؟')){state.cats[cur.cat].depts.splice(${i},1);sync();}">X</button></div>`;
             });
         }
-
         if(cur.cat !== null && cur.dept !== null && state.cats[cur.cat].depts[cur.dept]) {
             let d = state.cats[cur.cat].depts[cur.dept];
             document.getElementById('opt-title').innerText = d.name;
@@ -300,10 +315,8 @@
                 daysDiv.innerHTML += `<div class="item-link" onclick="cur.day='${day}';showScreen('screen-clinics')"><span class="clickable-area">${day}</span><button class="btn-del-item" style="display:${adminStyle}" onclick="event.stopPropagation();if(confirm('حذف اليوم؟')){state.cats[cur.cat].depts[cur.dept].days.splice(${i},1);if(d.clinics) delete d.clinics['${day}'];sync();}">X</button></div>`;
             });
         }
-
         if(cur.day !== null && state.cats[cur.cat].depts[cur.dept].clinics && state.cats[cur.cat].depts[cur.dept].clinics[cur.day]) {
             const cList = document.getElementById('clinics-list'); cList.innerHTML = "";
-            // التأكد من الترتيب عند كل رندر
             let sortedDocs = sortClinics(state.cats[cur.cat].depts[cur.dept].clinics[cur.day]);
             sortedDocs.forEach((c, i) => {
                 cList.innerHTML += `<div class="data-card"><b>د. ${c.doc}</b><br><span>${c.time}</span><br><div class="badge-price">${c.price} ج.م</div><br>${c.whatsapp ? `<a href="https://wa.me/${c.whatsapp}" class="whatsapp-btn">واتساب</a>` : ''}${c.notes ? `<div style="font-size:0.85rem;background:#f9f9f9;padding:8px;margin-top:8px;border-radius:5px;">📝 ${c.notes}</div>` : ''}<button class="btn-del-item" style="display:${adminStyle}" onclick="if(confirm('حذف الدكتور؟')){state.cats[cur.cat].depts[cur.dept].clinics['${cur.day}'].splice(${i},1);sync();}">X</button><button class="btn-edit-item" style="display:${adminStyle}" onclick="startEdit(${i})">✎</button></div>`;
